@@ -22,7 +22,7 @@ K_G <- unique(edges_iid$Gene) |> length()
 n_D <- table(edges_iid$Disease)
 n_G <- table(edges_iid$Gene)
 
-e <- nrow(unique(edges_iid))
+e <- nrow(edges_iid)
 
 d_obs <- e/(K_D*K_G)
 
