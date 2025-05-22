@@ -9,6 +9,9 @@ library(here)
 library(dplyr)
 library(tidyr)
 
+options(mc.cores = parallel::detectCores())
+
+
 #——— Paths ——————————————————————————————————————————————————————
 snap_folder    <- here("SNAP")
 stan_folder    <- here("stan")
