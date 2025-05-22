@@ -39,7 +39,7 @@ spike_ppc_fit <- sampling(
 )
 
 
-save(spike_ppc_fit, here(snap_folder, "spike_ppc_fit.Rdata"))
+save(spike_ppc_fit, file = here(snap_folder, "spike_ppc_fit.Rdata"))
 
 mcmc_trace(spike_ppc_fit, pars = c("alpha_A",
                                "alpha_B",

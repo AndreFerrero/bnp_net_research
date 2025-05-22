@@ -39,7 +39,7 @@ beta_ppc_fit <- sampling(
 )
 
 
-save(beta_ppc_fit, here(snap_folder, "beta_ppc_fit.Rdata"))
+save(beta_ppc_fit, file = here(snap_folder, "beta_ppc_fit.Rdata"))
 
 mcmc_trace(beta_ppc_fit, pars = c("alpha_A",
                                    "alpha_B",
