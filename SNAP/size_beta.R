@@ -22,6 +22,7 @@ dir.create(results_folder, recursive = TRUE, showWarnings = FALSE)
 data_path    <- here(snap_folder, "gene_desease.gz")
 edges        <- read_tsv(data_path, col_names = TRUE)
 beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_ppc.stan"))
+eps <- 0.05
 
 #——— Sample sizes ——————————————————————————————————————————————
 subn_values <- c(100, 500, 1000, 5000, 10000)
@@ -62,7 +63,7 @@ for (i in seq_along(subn_values)) {
     n_B           = n_G,
     prior_alpha_A = c(3, 0.4),
     prior_alpha_B = c(3, 0.4),
-    eps           = 0.1,
+    eps           = eps,
     e_obs         = e
   )
   
@@ -86,8 +87,8 @@ for (i in seq_along(subn_values)) {
     delta <- delta_values[j]
     post_0  <- mean(draws$sigma_A < delta)
     post_1  <- mean(draws$sigma_A > delta)
-    prior_0 <- pbeta(delta, 0.05, 1)
-    prior_1 <- pbeta(delta, 0.05, 1, lower.tail = FALSE)
+    prior_0 <- pbeta(delta, eps, 1)
+    prior_1 <- pbeta(delta, eps, 1, lower.tail = FALSE)
     bf      <- (post_0 / post_1) * (prior_1 / prior_0)
     idx     <- which(bf_table$subn == subn & bf_table$delta == delta)
     bf_table$bayes_factor[idx] <- bf
