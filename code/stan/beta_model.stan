@@ -38,9 +38,6 @@ parameters {
   real<lower=0>        alpha_B;
   real<lower=0,upper=1> sigma_A;
   real<lower=0,upper=1> sigma_B;
-  
-  real<lower=0,upper=1> w_A;
-  real<lower=0,upper=1> w_B;
 }
 
 model {
