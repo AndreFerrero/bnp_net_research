@@ -131,6 +131,7 @@ plot_dens_sum <- function(data,
                           add_hline0 = FALSE,
                           add_lm = FALSE,
                           title = NULL) {
+  library(scales)
   
   # If loglog, use log axis labels
   if (loglog) {
@@ -143,6 +144,7 @@ plot_dens_sum <- function(data,
     geom_ribbon(aes(ymin = ci_low, ymax = ci_high),
                 fill = "steelblue", alpha = 0.2) +
     geom_line(color = "steelblue", size = 1) +
+    scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
     labs(x = xlab, y = ylab, title = title) +
     theme_minimal(base_size = 14) +
     theme(panel.grid.minor = element_blank(),
