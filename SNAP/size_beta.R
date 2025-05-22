@@ -11,7 +11,7 @@ library(tidyr)
 
 #——— Paths ——————————————————————————————————————————————————————
 snap_folder    <- here("SNAP")
-stan_folder    <- here("code", "stan")
+stan_folder    <- here("stan")
 results_folder <- here(snap_folder, "results")
 dir.create(results_folder, recursive = TRUE, showWarnings = FALSE)
 
