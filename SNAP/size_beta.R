@@ -11,7 +11,6 @@ library(tidyr)
 
 options(mc.cores = parallel::detectCores())
 
-
 #——— Paths ——————————————————————————————————————————————————————
 snap_folder    <- here("SNAP")
 stan_folder    <- here("stan")
@@ -22,7 +21,7 @@ dir.create(results_folder, recursive = TRUE, showWarnings = FALSE)
 data_path    <- here(snap_folder, "gene_desease.gz")
 edges        <- read_tsv(data_path, col_names = TRUE)
 beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_ppc.stan"))
-eps <- 0.05
+eps <- 0.1
 
 #——— Sample sizes ——————————————————————————————————————————————
 subn_values <- c(100, 500, 1000, 5000, 10000)
@@ -67,7 +66,7 @@ for (i in seq_along(subn_values)) {
     e_obs         = e
   )
   
-  # 2) Fit model
+  # 2) Fit model (parallel chains)
   fit <- sampling(
     object  = beta_ppc_mod,
     data    = stan_data,
@@ -77,7 +76,7 @@ for (i in seq_along(subn_values)) {
   )
   save(fit, file = file.path(run_dir, "beta_ppc_fit.Rdata"))
   
-  # 3) Extract draws & density summary
+  # 3) Extract draws
   draws <- as_draws_df(fit)
   d_ppc <- draws$density_ppc
   q     <- quantile(d_ppc, probs = c(0.025, 0.5, 0.975))
@@ -94,13 +93,12 @@ for (i in seq_along(subn_values)) {
     bf_table$bayes_factor[idx] <- bf
   }
   
-  # 5) Save summary file
+  # 5) Save summary
   summary_lines <- c(
     paste0("Observed density      : ", round(d_obs, 4)),
     paste0("2.5% / 50% / 97.5%   : ", round(q[1],4), " / ", round(q[2],4), " / ", round(q[3],4)),
     ""
   )
-  # append BF results
   for (delta in delta_values) {
     bf <- bf_table %>% filter(subn == subn, delta == delta) %>% pull(bayes_factor)
     summary_lines <- c(summary_lines,
@@ -112,8 +110,9 @@ for (i in seq_along(subn_values)) {
   # 6) Individual plots
   p_trace <- mcmc_trace(fit, pars = c("sigma_A", "sigma_B", "density_ppc")) +
     ggtitle(paste("Trace – subn =", subn)) +
-    theme(legend.position = "top")
-  ggsave(file.path(run_dir, "trace_plot.png"), p_trace, width = 10, height = 6)
+    theme_minimal() +
+    theme(panel.background = element_rect(fill = "white"), plot.background = element_rect(fill = "white"))
+  ggsave(file.path(run_dir, "trace_plot.pdf"), p_trace, width = 10, height = 6, bg = "white")
   
   p_ppc <- ggplot(data.frame(d = d_ppc), aes(x = d)) +
     geom_histogram(bins = 30, color = "black", fill = "lightblue") +
@@ -122,10 +121,11 @@ for (i in seq_along(subn_values)) {
       title = paste("PPC – subn =", subn),
       x = expression(paste("Density = e / (K[D]*K[G])")),
       y = "Count"
-    ) + theme_minimal()
-  ggsave(file.path(run_dir, "ppc_density_plot.png"), p_ppc, width = 8, height = 5)
+    ) + theme_minimal() +
+    theme(panel.background = element_rect(fill = "white"), plot.background = element_rect(fill = "white"))
+  ggsave(file.path(run_dir, "ppc_density_plot.pdf"), p_ppc, width = 8, height = 5, bg = "white")
   
-  # 7) Store draws for combined plots
+  # 7) Store draws
   all_draws[[i]] <- draws %>%
     select(sigma_A, sigma_B, density_ppc) %>%
     mutate(subn = subn) %>%
@@ -135,34 +135,44 @@ for (i in seq_along(subn_values)) {
   gc()
 }
 
-#——— Combined posterior‐density plots —————————————————————————————————
+#——— Combined plots —————————————————————————————————————————————————
 combo_df <- bind_rows(all_draws)
 
-# A) σ parameters
-p_sigmas <- combo_df %>%
-  filter(parameter %in% c("sigma_A","sigma_B")) %>%
+# A) σ_A
+p_sigmaA <- combo_df %>%
+  filter(parameter == "sigma_A") %>%
   ggplot(aes(x = value, color = factor(subn))) +
   geom_density() +
-  facet_wrap(~ parameter, scales = "free") +
-  labs(color = "subn",
-       title = "Posterior densities of σ_A and σ_B",
-       x = "Value", y = "Density") +
-  theme_minimal()
-ggsave(file.path(results_folder, "combined_sigmas.png"), p_sigmas, width = 10, height = 6)
+  labs(color = "subn", title = "Posterior density of σ_A", x = "σ_A", y = "Density") +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = "white"), plot.background = element_rect(fill = "white"))
+ggsave(file.path(results_folder, "combined_sigmaA.pdf"), p_sigmaA, width = 8, height = 5, bg = "white")
 
-# B) PPC density
+# B) σ_B
+p_sigmaB <- combo_df %>%
+  filter(parameter == "sigma_B") %>%
+  ggplot(aes(x = value, color = factor(subn))) +
+  geom_density() +
+  labs(color = "subn", title = "Posterior density of σ_B", x = "σ_B", y = "Density") +
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = "white"), plot.background = element_rect(fill = "white"))
+ggsave(file.path(results_folder, "combined_sigmaB.pdf"), p_sigmaB, width = 8, height = 5, bg = "white")
+
+# C) density_ppc
 p_ppc_all <- combo_df %>%
   filter(parameter == "density_ppc") %>%
   ggplot(aes(x = value, color = factor(subn))) +
   geom_density() +
-  labs(color = "subn",
-       title = "Posterior‐predictive densities",
-       x = expression(paste("Density = e / (K[D]*K[G])")),
+  labs(color = "subn", title = "Posterior-predictive density",
+       x = expression(paste("Density = e/(K[D]*K[G])")),
        y = "Density") +
-  theme_minimal()
-ggsave(file.path(results_folder, "combined_ppc_density.png"), p_ppc_all, width = 10, height = 6)
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white"))
+ggsave(file.path(results_folder, "combined_ppc_density.pdf"), p_ppc_all,
+       width = 8, height = 5, bg = "white")
 
-#——— Bayes factor vs. subn for each delta ———————————————————————————————
+# D) Bayes factor vs. subn
 p_bf <- ggplot(bf_table, aes(x = subn, y = bayes_factor, group = factor(delta), color = factor(delta))) +
   geom_line() +
   geom_point() +
@@ -173,7 +183,8 @@ p_bf <- ggplot(bf_table, aes(x = subn, y = bayes_factor, group = factor(delta), 
     y = "Bayes factor",
     color = expression(delta)
   ) +
-  theme_minimal()
-ggsave(file.path(results_folder, "bf_vs_subn.png"), p_bf, width = 8, height = 5)
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = "white"), plot.background = element_rect(fill = "white"))
+ggsave(file.path(results_folder, "bf_vs_subn.pdf"), p_bf, width = 8, height = 5, bg = "white")
 
 message("✅ All runs complete. Results under: ", results_folder)
