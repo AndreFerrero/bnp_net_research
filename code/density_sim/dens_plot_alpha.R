@@ -29,7 +29,7 @@ dens_plot = function(alpha_dens) {
     labs(
       x     = expression(alpha),
       y     = expression(E * "[" * d(H[n]) * "]"),
-      color = "Network size"
+      color = "Networks size"
     ) +
     theme_minimal() +
     theme(

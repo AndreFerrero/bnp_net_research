@@ -259,9 +259,13 @@ dens_py <- gridExtra::grid.arrange(dens_sum_plot_py25, dens_sum_plot_py5,
                         nrow = 2,
                         ncol = 3)
 
+dens_py <- gridExtra::grid.arrange(dens_sum_plot_py25, dens_sum_plot_py5,
+                                   dens_sum_plot_py75,
+                                   ncol = 3)
 ggsave(dens_py,
        filename = here(dens_pics, "py", "dens_py.pdf"),
        width = 9,
-       height = 7,
+       height = 5,
        dpi = 300,
        bg = "white")
+
