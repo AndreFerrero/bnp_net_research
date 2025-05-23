@@ -56,14 +56,14 @@ model {
   // Spike-and-slab prior for sigma_A
   target += log_mix(
     w_A,
-    beta_lpdf(sigma_A | eps, 1),  // spike near zero
+    beta_lpdf(sigma_A | eps, 100),  // spike near zero
     beta_lpdf(sigma_A | 1, 1)  // flat slab
   );
 
   // Spike-and-slab prior for sigma_B
   target += log_mix(
     w_B,
-    beta_lpdf(sigma_B | eps, 1),
+    beta_lpdf(sigma_B | eps, 100),
     beta_lpdf(sigma_B | 1, 1)
   );
 

@@ -97,7 +97,7 @@ ggplot(data.frame(density = d_ppc), aes(x = density)) +
   theme_minimal()
 
 ## BAYES FACTOR ####
-delta <- 0.005
+delta <- 0.05
 
 # P(sigma_A < delta | Y)
 (post_0 <- mean(draws$sigma_A < delta))

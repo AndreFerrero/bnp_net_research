@@ -45,10 +45,10 @@ spike_ppc_fit <- sampling(
   warmup = 1000,
   seed   = 42,
   thin   = 1,
-  control = list(adapt_delta = 0.95)
+  control = list(adapt_delta = 0.999)
 )
 
-post_summary <- summary(spike_fit,
+post_summary <- summary(spike_ppc_fit,
                         probs = c(0.025, 0.5, 0.975))$summary
 print(post_summary |> round(digits = 3))
 
