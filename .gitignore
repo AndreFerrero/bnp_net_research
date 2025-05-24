@@ -10,7 +10,7 @@ res/sims/
 thesis/
 .Rdata
 .Rhistory
-research.Rproj/
+*.Rproj
 .DS_Store
 Thumbs.db
 desktop.ini
