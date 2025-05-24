@@ -1,0 +1,17 @@
+*.tmp
+*.bak
+~$*
+.ssh/
+BNP/
+misc_ref/
+Network ANalysis/
+res/old_sim/
+res/sims/
+thesis/
+.Rdata
+.Rhistory
+research.Rproj/
+.DS_Store
+Thumbs.db
+desktop.ini
+.Rproj.user
