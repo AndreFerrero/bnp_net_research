@@ -2,7 +2,7 @@
 library(tidyverse)
 library(here)
 
-poll_dir <- here("pollinators/mpl006")
+# poll_dir <- here("pollinators/mpl006")
 # Read the CSV file
 # (Change the file path to where you've saved your file)
 data <- read.csv(here(poll_dir, "M_PL_006.csv"),
@@ -26,20 +26,36 @@ poll <- edges %>%
   group_by(pollinator) %>%
   summarise(counts = sum(weight))
 
+(d_obs <- nrow(edges)/(nrow(plant) * nrow(poll)))
 
-subn <- 100
+subn <- sum(edges$weight)/2 %>% round()  # number of unit‐interactions you want to draw
 
-sub_edges <- edges[sample(nrow(edges), subn, replace = T, prob = edges$weight),]
-sub_weighted_edges <- sub_edges %>%
-  group_by(plant, pollinator) %>%
-  summarise(weight = n(), .groups = "drop") %>%
-  arrange(desc(weight))
+# 1) explode into tickets
+tickets <- rep(seq_len(nrow(edges)), times = edges$weight)
+
+# 2) sample tickets *without* replacement
+sel <- sample(tickets, size = subn, replace = FALSE)
+
+# 3) count how many times each edge got picked
+sub_weights_df <- as.data.frame(table(sel), stringsAsFactors = FALSE) %>%
+  transmute(
+    row_index = as.integer(sel),
+    weight    = as.integer(Freq)
+  )
+
+# 4) join back to your edge list
+sub_edges <- edges %>%
+  slice(sub_weights_df$row_index) %>%
+  mutate(weight = sub_weights_df$weight)
+
+# View
+print(sub_edges)
 
 
-sub_plant <- sub_weighted_edges %>%
+sub_plant <- sub_edges %>%
   group_by(plant) %>%
   summarise(counts = sum(weight))
 
-sub_poll <- sub_weighted_edges %>%
+sub_poll <- sub_edges %>%
   group_by(pollinator) %>%
   summarise(counts = sum(weight))
