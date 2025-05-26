@@ -8,7 +8,6 @@ Network ANalysis/
 res/old_sim/
 res/sims/
 thesis/
-.Rdata
 .Rhistory
 *.Rproj
 .DS_Store
