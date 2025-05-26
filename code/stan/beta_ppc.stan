@@ -24,8 +24,8 @@ functions {
 data {
   int<lower=1>   K_A;              // number of A-side nodes
   int<lower=1>   K_B;              // number of B-side nodes
-  int<lower=1>   n_A[K_A];         // counts for A
-  int<lower=1>   n_B[K_B];         // counts for B
+  array[K_A] int<lower=1> n_A;         // counts for A
+  array[K_B] int<lower=1> n_B;         // counts for B
 
   vector<lower=0>[2] prior_alpha_A; // Gamma(shape, rate)
   vector<lower=0>[2] prior_alpha_B;
@@ -61,9 +61,9 @@ generated quantities {
 
   {  // local scope
     int maxN = e_obs;  // upper limit on number of draws
-    int countsA[maxN];
-    int countsB[maxN];
-    int seen[maxN, maxN];
+    array[maxN] int countsA;
+    array[maxN] int countsB;
+    array[maxN, maxN] int seen;
     int unique_edges;
     int KactA;
     int KactB;
