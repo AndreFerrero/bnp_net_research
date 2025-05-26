@@ -50,6 +50,9 @@ beta_ppc_fit <- sampling(
 est_folder <- here("code", "estimation")
 
 save(beta_ppc_fit, file = here(est_folder, "beta_ppc_fit_eps_005.Rdata"))
+
+load(here(est_folder, "beta_ppc_fit_eps_005.Rdata"))
+
 post_summary <- summary(beta_ppc_fit,
                         probs = c(0.025, 0.5, 0.975))$summary
 print(post_summary |> round(digits = 3))
