@@ -1,6 +1,6 @@
 functions {
   // Log EPPF for Pitman–Yor process
-  real eppf_lp(int[] n_j, int K, real alpha, real sigma) {
+  real eppf_lp(array[] int n_j, int K, real alpha, real sigma) {
     int N = sum(n_j);
     if (alpha <= 0 || sigma < 0 || sigma >= 1)
       return negative_infinity();
