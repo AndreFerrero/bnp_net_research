@@ -13,14 +13,14 @@ options(
 
 set.seed(42)
 
-alpha_true = c(5,5)
+alpha_true = c(5, 5)
 sigma_true = c(0, 0.7)
 
 net <- sample_net(1e4,
                   alpha = alpha_true,
                   sigma = sigma_true)
 
-stan_folder <- here("code","stan")
+stan_folder <- here("code", "stan")
 beta_ppc_path <- here(stan_folder, "beta_ppc.stan")
 beta_ppc_mod <- stan_model(file = beta_ppc_path)
 
@@ -47,7 +47,7 @@ beta_ppc_fit <- sampling(
   control = list(adapt_delta = 0.999)
 )
 
-est_folder <- here("code","estimation")
+est_folder <- here("code", "estimation")
 
 save(beta_ppc_fit, file = here(est_folder, "beta_ppc_fit_eps_005.Rdata"))
 post_summary <- summary(beta_ppc_fit,
@@ -65,9 +65,9 @@ mcmc_trace(beta_ppc_fit, pars = c("alpha_A",
   theme(legend.position = "top")
 
 mcmc_trace(beta_ppc_fit, pars = c("alpha_A",
-                                   "alpha_B",
-                                   "sigma_A",
-                                   "sigma_B")) +
+                                  "alpha_B",
+                                  "sigma_A",
+                                  "sigma_B")) +
   ggtitle("Beta prior on sigma") +
   theme(legend.position = "top")
 
@@ -104,6 +104,6 @@ delta <- 0.05
 post_1 <- mean(draws$sigma_A > delta)
 
 prior_0 <- pbeta(delta, 0.05, 1)
-prior_1 <- pbeta(delta, 0.05, 1, lower.tail = F)
+prior_1 <- pbeta(delta, 0.05, 1, lower.tail = FALSE)
 
 (bf <- post_0/post_1 * prior_1/prior_0)
