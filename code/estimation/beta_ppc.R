@@ -100,7 +100,7 @@ ggplot(data.frame(density = d_ppc), aes(x = density)) +
   theme_minimal()
 
 ## BAYES FACTOR ####
-delta <- 0.05
+delta <- 0.0()
 
 # P(sigma_A < delta | Y)
 (post_0 <- mean(draws$sigma_A < delta))
@@ -109,4 +109,5 @@ post_1 <- mean(draws$sigma_A > delta)
 prior_0 <- pbeta(delta, 0.05, 1)
 prior_1 <- pbeta(delta, 0.05, 1, lower.tail = FALSE)
 
-(bf <- post_0/post_1 * prior_1/prior_0)
+(bf <- post_0 / post_1 * prior_1 / prior_0)
+log10(bf)
