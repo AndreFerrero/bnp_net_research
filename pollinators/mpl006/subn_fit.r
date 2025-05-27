@@ -1,3 +1,5 @@
+# this script goes in the cluster
+
 library(tidyverse)
 library(here)
 library(rstan)
@@ -62,7 +64,7 @@ rstan_options(auto_write = TRUE)
 
 # Stan model
 stan_folder  <- here("stan")
-unif_ppc_mod <- stan_model(file = here(stan_folder, "unif_ppc.stan"))
+spike_ppc_mod <- stan_model(file = here(stan_folder, "spike_ppc.stan"))
 
 # define the fractions of the data you want to try
 percentages <- c(0.1, 0.2, 0.4, 0.6, 0.8, 1.0)
@@ -81,23 +83,24 @@ for (p in percentages) {
     n_B           = sub_edges$sub_poll$counts,
     prior_alpha_A = c(3, 0.4),
     prior_alpha_B = c(3, 0.4),
-    prior_sigma_A = c(1, 1),
-    prior_sigma_B = c(1, 1),
+    eps           = 0.1,
     e_obs         = sub_edges$e_obs
   )
 
   fit <- sampling(
-    object  = unif_ppc_mod,
+    object  = spike_ppc_mod,
     data    = stan_data,
     chains  = 4,
     iter    = 20000,
     warmup  = 1000,
     thin    = 10,
     seed    = 42,
-    control = list(adapt_delta = 0.999)
+    control = list(adapt_delta = 0.999, max_treedepth = 15)
   )
 
+  check_hmc_diagnostics(fit)
+
   pct_label <- sprintf("%03d", round(p * 100))
-  out_file  <- here("poll", "fits", paste0("unif_ppc_fit_", pct_label, "pct.Rdata"))
+  out_file  <- here("poll", "fits", paste0("spike_ppc_fit_", pct_label, "pct.Rdata"))
   save(fit, file = out_file)
 }

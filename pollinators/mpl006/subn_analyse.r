@@ -1,4 +1,3 @@
-#!/usr/bin/env Rscript
 
 library(rstan)
 library(bayesplot)
@@ -9,7 +8,7 @@ library(posterior)
 
 # where things live
 poll_dir  <- here("pollinators/mpl006")
-plots_dir <- here(poll_dir, "unif_plots")
+plots_dir <- here(poll_dir, "spike_plots")
 fits_dir  <- here(poll_dir, "fits")
 
 dir.create(plots_dir, showWarnings = FALSE)
@@ -51,7 +50,7 @@ bf_summary      <- tibble()
 for(p in percentages){
   pct_label <- sprintf("%03d",round(100*p))
   cat("Processing", pct_label, "…\n")
-  load(here(fits_dir, paste0("unif_ppc_fit_",pct_label,"pct.Rdata")))
+  load(here(fits_dir, paste0("spike_ppc_fit_",pct_label,"pct.Rdata")))
 
   # recompute d_obs & e_obs
   ss <- compute_d_obs(full_edges, round(total_weight*p))
@@ -132,3 +131,4 @@ bf_plot <- ggplot(bf_summary, aes(x=pct, y=log10BF)) +
        title=bquote("Bayes factor for " ~ sigma[A] < .(delta))) +
   theme_minimal()
 ggsave(here(plots_dir,"bayes_factor_vs_pct.pdf"), bf_plot, width=6, height=4)
+
