@@ -1,6 +1,6 @@
 functions {
   // Log EPPF for Pitman–Yor process
-  real eppf_lp(int[] n_j, int K, real alpha, real sigma) {
+  real eppf_lp(array[] int n_j, int K, real alpha, real sigma) {
     int N = sum(n_j);
     if (alpha <= 0 || sigma < 0 || sigma >= 1)
       return negative_infinity();
@@ -24,8 +24,8 @@ functions {
 data {
   int<lower=1>   K_A;              // number of A-side nodes
   int<lower=1>   K_B;              // number of B-side nodes
-  int<lower=1>   n_A[K_A];         // counts for A
-  int<lower=1>   n_B[K_B];         // counts for B
+  array[K_A] int<lower=1> n_A;         // counts for A
+  array[K_B] int<lower=1> n_B;         // counts for B
 
   vector<lower=0>[2] prior_alpha_A; // Gamma(shape, rate)
   vector<lower=0>[2] prior_alpha_B;
@@ -77,9 +77,9 @@ generated quantities {
 
   {  // local scope
     int maxN = e_obs;  // upper limit on number of draws
-    int countsA[maxN];
-    int countsB[maxN];
-    int seen[maxN, maxN];
+    array[maxN] int countsA;
+    array[maxN] int countsB;
+    array[maxN, maxN] int seen;
     int unique_edges;
     int KactA;
     int KactB;
