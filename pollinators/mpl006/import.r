@@ -8,7 +8,7 @@ library(here)
 data <- read.csv(here(poll_dir, "M_PL_006.csv"),
                  check.names = FALSE, row.names = 1)
 
-# Convert the wide matrix to a long edge list
+# Convert the adj matrix to an edge list
 edges <- data %>%
   rownames_to_column(var = "plant") %>%
   pivot_longer(
@@ -26,9 +26,9 @@ poll <- edges %>%
   group_by(pollinator) %>%
   summarise(counts = sum(weight))
 
-(d_obs <- nrow(edges)/(nrow(plant) * nrow(poll)))
+(d_obs <- nrow(edges) / (nrow(plant) * nrow(poll)))
 
-subn <- sum(edges$weight)/2 %>% round()  # number of unit‐interactions you want to draw
+subn <- sum(edges$weight) / 2 %>% round()
 
 # 1) explode into tickets
 tickets <- rep(seq_len(nrow(edges)), times = edges$weight)
