@@ -64,7 +64,7 @@ rstan_options(auto_write = TRUE)
 
 # Stan model
 stan_folder  <- here("stan")
-spike_ppc_mod <- stan_model(file = here(stan_folder, "spike_ppc.stan"))
+beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_ppc.stan"))
 
 # define the fractions of the data you want to try
 percentages <- c(0.1, 0.2, 0.4, 0.6, 0.8, 1.0)
@@ -88,7 +88,7 @@ for (p in percentages) {
   )
 
   fit <- sampling(
-    object  = spike_ppc_mod,
+    object  = beta_ppc_mod,
     data    = stan_data,
     chains  = 4,
     iter    = 20000,
@@ -101,6 +101,6 @@ for (p in percentages) {
   check_hmc_diagnostics(fit)
 
   pct_label <- sprintf("%03d", round(p * 100))
-  out_file  <- here("poll", "fits", paste0("spike_ppc_fit_", pct_label, "pct.Rdata"))
+  out_file  <- here("poll", "fits", paste0("beta_05_1_ppc_fit_", pct_label, "pct.Rdata"))
   save(fit, file = out_file)
 }
