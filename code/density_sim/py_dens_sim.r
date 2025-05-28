@@ -48,12 +48,13 @@ compute_density <- function(net) {
 
 # SIMULATION PARAMETERS --------------------------------------------------
 sizes <- c(1e3, 1e4, 1e5, 1e6)
-n_rep <- 20
+n_rep <- 50
 alpha <- c(5, 5)
 sigma_list <- list(c(0.25, 0.25), c(0.5, 0.5), c(0.75, 0.75))
 
 # Parallel backend setup
-n_cores <- parallel::detectCores() - 1
+n_cores <- min(n_rep, parallel::detectCores())
+
 cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 
@@ -61,6 +62,7 @@ registerDoParallel(cl)
 all_summaries <- list()
 total_steps <- length(sigma_list) * length(sizes)
 step_counter <- 0
+cat("Starting simulation with", total_steps, "steps...\n")
 pb <- txtProgressBar(min = 0, max = total_steps, style = 3)
 
 for (s in sigma_list) {
