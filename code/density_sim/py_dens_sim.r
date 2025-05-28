@@ -1,11 +1,7 @@
 # Load necessary libraries
 library(foreach)
-library(doFuture)
-library(progressr)
+library(doParallel)
 library(dplyr)
-
-handlers(global = TRUE)
-handlers("txtprogressbar")
 
 # FUNCTIONS ---------------------------------------------------------------
 py_sample <- function(N, alpha = 5, sigma = 0) {
@@ -58,51 +54,53 @@ sigma_list <- list(c(0.25, 0.25), c(0.5, 0.5), c(0.75, 0.75))
 
 # Parallel backend setup
 n_cores <- parallel::detectCores() - 1
-registerDoFuture()
-plan(multisession, workers = n_cores)
+cl <- makeCluster(n_cores)
+registerDoParallel(cl)
 
 # MAIN SIMULATION ---------------------------------------------------------
 all_summaries <- list()
+total_steps <- length(sigma_list) * length(sizes)
+step_counter <- 0
+pb <- txtProgressBar(min = 0, max = total_steps, style = 3)
 
-progressr::with_progress({
-  p <- progressor(steps = length(sigma_list) * length(sizes))
+for (s in sigma_list) {
+  sigmaA <- s[1]
+  sigmaB <- s[2]
+  sigma_str <- paste0(sigmaA, "_", sigmaB)
 
-  for (s in sigma_list) {
-    sigmaA <- s[1]
-    sigmaB <- s[2]
-    sigma_str <- paste0(sigmaA, "_", sigmaB)
+  for (N in sizes) {
+    # prepare directories
+    base_dir <- file.path("sim_results", paste0("sigma_", sigma_str), paste0("size_", N))
+    dir.create(file.path(base_dir, "networks"), recursive = TRUE, showWarnings = FALSE)
+    dir.create(file.path(base_dir, "densities"), recursive = TRUE, showWarnings = FALSE)
 
-    for (N in sizes) {
-      # prepare directories
-      base_dir <- file.path("sim_results", paste0("sigma_", sigma_str), paste0("size_", N))
-      dir.create(file.path(base_dir, "networks"), recursive = TRUE, showWarnings = FALSE)
-      dir.create(file.path(base_dir, "densities"), recursive = TRUE, showWarnings = FALSE)
+    # parallel over replicates for this size
+    results_N <- foreach(rep = seq_len(n_rep), .combine = rbind) %dopar% {
+      net <- sample_net(N, alpha, c(sigmaA, sigmaB))
 
-      # parallel over replicates for this size with progress tracking
-      results_N <- foreach(rep = seq_len(n_rep), .combine = rbind) %dopar% {
-        net <- sample_net(N, alpha, c(sigmaA, sigmaB))
+      net_file <- file.path(base_dir, "networks", paste0("network_rep_", rep, ".rds"))
+      saveRDS(net, net_file)
 
-        net_file <- file.path(base_dir, "networks", paste0("network_rep_", rep, ".rds"))
-        saveRDS(net, net_file)
+      dens <- compute_density(net)
+      dens_file <- file.path(base_dir, "densities", paste0("density_rep_", rep, ".rds"))
+      saveRDS(dens, dens_file)
 
-        dens <- compute_density(net)
-        dens_file <- file.path(base_dir, "densities", paste0("density_rep_", rep, ".rds"))
-        saveRDS(dens, dens_file)
-
-        data.frame(
-          sigmaA = sigmaA,
-          sigmaB = sigmaB,
-          size = N,
-          rep = rep,
-          density = dens
-        )
-      }
-
-      all_summaries[[paste0(sigma_str, "_", N)]] <- results_N
-      p(sprintf("Completed sigma=(%.2f, %.2f), N=%d", sigmaA, sigmaB, N))
+      data.frame(
+        sigmaA = sigmaA,
+        sigmaB = sigmaB,
+        size = N,
+        rep = rep,
+        density = dens
+      )
     }
+
+    all_summaries[[paste0(sigma_str, "_", N)]] <- results_N
+    step_counter <- step_counter + 1
+    setTxtProgressBar(pb, step_counter)
   }
-})
+}
+close(pb)
+stopCluster(cl)
 
 # AGGREGATE STATISTICS ----------------------------------------------------
 results_df <- bind_rows(all_summaries)
