@@ -132,7 +132,7 @@ library(ggplot2)
 # Compute log2(size) as a separate variable for clarity
 summary_stats$log2_size <- log2(summary_stats$size)
 
-ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
+p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
   geom_line(size = 1) +
   geom_point(aes(shape = factor(sigmaA)), size = 3, stroke = 0.8) +
   geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
@@ -144,9 +144,9 @@ ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA
     title = "Bipartite Network Density vs. Size",
     x = expression(log[2](n)),
     y = "Density",
-    color = "Sigma",
-    fill = "Sigma",
-    shape = "Sigma"
+    color = expression(sigma),
+    fill = expression(sigma),
+    shape = expression(sigma)
   ) +
   theme_minimal() +
   theme(
@@ -155,5 +155,5 @@ ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA
   )
 
 
-ggsave(filename = here("res", "density_PY", "new_sim", "log2_dens_summary.pdf"))
+ggsave(p_dens, filename = here("res", "pics", "density_analysis", "py", "log2_dens_summary.pdf"))
 # End of script
