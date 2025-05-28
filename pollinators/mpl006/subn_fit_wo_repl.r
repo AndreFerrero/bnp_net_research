@@ -7,7 +7,8 @@ library(rstan)
 poll_dir <- here("poll")
 
 data <- read.csv(here(poll_dir, "M_PL_006.csv"),
-                 check.names = FALSE, row.names = 1)
+  check.names = FALSE, row.names = 1
+)
 
 full_edges <- data |>
   rownames_to_column(var = "plant") |>
@@ -21,15 +22,18 @@ full_edges <- data |>
 total_weight <- sum(full_edges$weight)
 cat("Total edge‐weight in network:", total_weight, "\n")
 
-sub <- function(edges, subn) {
-
+sub_wo_repl <- function(edges, subn) {
   # original counts
-  plant <- edges |> group_by(plant) |> summarise(counts = sum(weight))
-  poll  <- edges |> group_by(pollinator) |> summarise(counts = sum(weight))
+  plant <- edges |>
+    group_by(plant) |>
+    summarise(counts = sum(weight))
+  poll <- edges |>
+    group_by(pollinator) |>
+    summarise(counts = sum(weight))
 
   # explode into tickets and sample exactly subn of them
   tickets <- rep(seq_len(nrow(edges)), times = edges$weight)
-  sel     <- sample(tickets, size = subn, replace = FALSE)
+  sel <- sample(tickets, size = subn, replace = FALSE)
 
   sub_weights_df <- as.data.frame(table(sel), stringsAsFactors = FALSE) |>
     transmute(
@@ -42,18 +46,17 @@ sub <- function(edges, subn) {
     mutate(weight = sub_weights_df$weight)
 
   sub_plant <- sub_edges |>
-  group_by(plant) |>
-  summarise(counts = sum(weight))
+    group_by(plant) |>
+    summarise(counts = sum(weight))
 
-  sub_poll  <- sub_edges |>
-  group_by(pollinator) |>
-  summarise(counts = sum(weight))
+  sub_poll <- sub_edges |>
+    group_by(pollinator) |>
+    summarise(counts = sum(weight))
 
   list(
     sub_plant = sub_plant,
     sub_poll  = sub_poll,
     sub_edges = sub_edges,
-    d_obs     = nrow(sub_edges) / (nrow(sub_plant) * nrow(sub_poll)),
     e_obs     = sum(sub_edges$weight)
   )
 }
@@ -63,7 +66,7 @@ options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
 # Stan model
-stan_folder  <- here("stan")
+stan_folder <- here("stan")
 beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_ppc.stan"))
 
 # define the fractions of the data you want to try
@@ -101,6 +104,9 @@ for (p in percentages) {
   check_hmc_diagnostics(fit)
 
   pct_label <- sprintf("%03d", round(p * 100))
-  out_file  <- here("poll", "fits", paste0("beta_05_1_ppc_fit_", pct_label, "pct.Rdata"))
+  out_file <- here(
+    "poll", "fits",
+    paste0("beta_05_1_ppc_fit_", pct_label, "pct.Rdata")
+  )
   save(fit, file = out_file)
 }
