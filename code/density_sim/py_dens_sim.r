@@ -142,7 +142,7 @@ ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA
   ) +
   labs(
     title = "Bipartite Network Density vs. Size",
-    x = expression(log[2](N)),
+    x = expression(log[2](n)),
     y = "Density",
     color = "Sigma",
     fill = "Sigma",
