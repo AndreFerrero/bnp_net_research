@@ -1,7 +1,9 @@
 # Load necessary libraries
 library(foreach)
-library(doParallel)
+library(doFuture)
 library(progressr)
+library(dplyr)
+
 handlers(global = TRUE)
 handlers("txtprogressbar")
 
@@ -50,14 +52,14 @@ compute_density <- function(net) {
 
 # SIMULATION PARAMETERS --------------------------------------------------
 sizes <- c(1e3, 1e4, 1e5, 1e6)
-n_rep <- 50
+n_rep <- 20
 alpha <- c(5, 5)
 sigma_list <- list(c(0.25, 0.25), c(0.5, 0.5), c(0.75, 0.75))
 
 # Parallel backend setup
-n_cores <- parallel::detectCores()
-cl <- makeCluster(n_cores, type = "PSOCK")
-registerDoParallel(cl)
+n_cores <- parallel::detectCores() - 1
+registerDoFuture()
+plan(multisession, workers = n_cores)
 
 # MAIN SIMULATION ---------------------------------------------------------
 all_summaries <- list()
@@ -76,40 +78,24 @@ progressr::with_progress({
       dir.create(file.path(base_dir, "networks"), recursive = TRUE, showWarnings = FALSE)
       dir.create(file.path(base_dir, "densities"), recursive = TRUE, showWarnings = FALSE)
 
-      # parallel over replicates for this size
-      results_N <- foreach(
-        rep = seq_len(n_rep), .combine = rbind,
-        .packages = c("progressr"),
-        .export = c("sample_net", "compute_density")
-      ) %dopar% {
-        progressr::handlers("txtprogressbar")
-        progressr::with_progress({
-          p_inner <- progressor(steps = 1)
+      # parallel over replicates for this size with progress tracking
+      results_N <- foreach(rep = seq_len(n_rep), .combine = rbind) %dopar% {
+        net <- sample_net(N, alpha, c(sigmaA, sigmaB))
 
-          # simulate
-          net <- sample_net(N, alpha, c(sigmaA, sigmaB))
+        net_file <- file.path(base_dir, "networks", paste0("network_rep_", rep, ".rds"))
+        saveRDS(net, net_file)
 
-          # save network
-          net_file <- file.path(base_dir, "networks", paste0("network_rep_", rep, ".rds"))
-          saveRDS(net, net_file)
+        dens <- compute_density(net)
+        dens_file <- file.path(base_dir, "densities", paste0("density_rep_", rep, ".rds"))
+        saveRDS(dens, dens_file)
 
-          # compute & save density
-          dens <- compute_density(net)
-          dens_file <- file.path(base_dir, "densities", paste0("density_rep_", rep, ".rds"))
-          saveRDS(dens, dens_file)
-
-          # mark progress
-          p_inner()
-
-          # return record
-          data.frame(
-            sigmaA = sigmaA,
-            sigmaB = sigmaB,
-            size = N,
-            rep = rep,
-            density = dens
-          )
-        })
+        data.frame(
+          sigmaA = sigmaA,
+          sigmaB = sigmaB,
+          size = N,
+          rep = rep,
+          density = dens
+        )
       }
 
       all_summaries[[paste0(sigma_str, "_", N)]] <- results_N
@@ -118,11 +104,7 @@ progressr::with_progress({
   }
 })
 
-# stop cluster
-stopCluster(cl)
-
 # AGGREGATE STATISTICS ----------------------------------------------------
-library(dplyr)
 results_df <- bind_rows(all_summaries)
 summary_stats <- results_df %>%
   group_by(sigmaA, sigmaB, size) %>%
