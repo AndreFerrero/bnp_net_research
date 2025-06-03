@@ -22,6 +22,8 @@ total_weight <- sum(full_edges$weight)
 cat("Total edge‐weight in network:", total_weight, "\n")
 
 sub_repl <- function(edges, subn) {
+  set.seed(1234)
+
   # Sample indices with replacement, weighted by original weights
   sampled_indices <- sample(seq_len(nrow(edges)), size = subn, replace = TRUE, prob = edges$weight)
 
@@ -56,7 +58,7 @@ rstan_options(auto_write = TRUE)
 
 # Stan model
 stan_folder <- here("stan")
-beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_model.stan"))
+beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_01_1_model.stan"))
 
 # define subn values
 reps <- c(10^4, 10^5, 10^6)

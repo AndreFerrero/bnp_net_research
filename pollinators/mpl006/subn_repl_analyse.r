@@ -11,7 +11,7 @@ w_repl_dir <- here(poll_dir, "w_repl")
 plots_dir <- here(w_repl_dir, "beta_01_1_plots")
 fits_dir <- here(w_repl_dir, "fits")
 
-dir.create(plots_dir, showWarnings = FALSE)
+dir.create(plots_dir)
 
 # Read original full‐edge list once
 raw_mat <- read.csv(here(poll_dir, "M_PL_006.csv"),
