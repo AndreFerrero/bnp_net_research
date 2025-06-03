@@ -69,7 +69,7 @@ rstan_options(auto_write = TRUE)
 
 # Stan model
 stan_folder <- here("stan")
-beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_ppc.stan"))
+mod <- stan_model(file = here(stan_folder, "hyper_beta.stan"))
 
 # define the fractions of the data you want to try
 percentages <- c(0.1, 0.2, 0.4, 0.6, 0.8, 1.0)
@@ -79,7 +79,7 @@ for (p in percentages) {
   subn <- round(total_weight * p)
   cat(sprintf("→ %3.0f%% of total weight → subn = %d\n", p * 100, subn))
 
-  sub_edges <- sub(full_edges, subn)
+  sub_edges <- sub_wo_repl(full_edges, subn)
 
   stan_data <- list(
     K_A           = nrow(sub_edges$sub_plant),
@@ -93,7 +93,7 @@ for (p in percentages) {
   )
 
   fit <- sampling(
-    object  = beta_ppc_mod,
+    object  = mod,
     data    = stan_data,
     chains  = 4,
     iter    = 20000,
@@ -107,8 +107,8 @@ for (p in percentages) {
 
   pct_label <- sprintf("%03d", round(p * 100))
   out_file <- here(
-    "poll", "fits",
-    paste0("beta_05_1_ppc_fit_", pct_label, "pct.Rdata")
+    "poll", "wo_repl_fits",
+    paste0("hyper_beta_fit_", pct_label, "pct.Rdata")
   )
   save(fit, file = out_file)
 }

@@ -8,7 +8,7 @@ library(posterior)
 # where things live
 poll_dir <- here("pollinators/mpl006")
 wo_repl_dir <- here(poll_dir, "wo_repl")
-plots_dir <- here(wo_repl_dir, "beta_01_1_plots")
+plots_dir <- here(wo_repl_dir, "hyper_beta_plots")
 fits_dir <- here(wo_repl_dir, "fits")
 
 dir.create(plots_dir)
@@ -57,7 +57,7 @@ bf_summary <- tibble()
 for (p in percentages) {
   pct_label <- sprintf("%03d", round(100 * p))
   cat("Processing", pct_label, "…\n")
-  load(here(fits_dir, paste0("beta_05_1_ppc_fit_", pct_label, "pct.Rdata")))
+  load(here(fits_dir, paste0("hyper_ppc_fit_", pct_label, "pct.Rdata")))
 
   # recompute d_obs & e_obs
   ss <- compute_d_obs(full_edges, round(total_weight * p))
@@ -80,17 +80,17 @@ for (p in percentages) {
   ggsave(here(plots_dir, paste0("dens_overlay_", pct_label, "pct.pdf")), dens_plot)
 
   # PPC on network density
-  draws_df <- as_draws_df(fit)
-  d_ppc <- draws_df$density_ppc
-  ppc_hist <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
-    geom_histogram(bins = 30, color = "black", fill = "lightblue") +
-    geom_vline(xintercept = ss$d_obs, color = "red", size = 1) +
-    labs(
-      title = paste0(pct_label, "% PPC density"),
-      x = expression(d == e / (K[D] * K[G]))
-    ) +
-    theme_minimal()
-  ggsave(here(plots_dir, paste0("ppc_density_", pct_label, "pct.pdf")), ppc_hist)
+  # draws_df <- as_draws_df(fit)
+  # d_ppc <- draws_df$density_ppc
+  # ppc_hist <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+  #   geom_histogram(bins = 30, color = "black", fill = "lightblue") +
+  #   geom_vline(xintercept = ss$d_obs, color = "red", size = 1) +
+  #   labs(
+  #     title = paste0(pct_label, "% PPC density"),
+  #     x = expression(d == e / (K[D] * K[G]))
+  #   ) +
+  #   theme_minimal()
+  # ggsave(here(plots_dir, paste0("ppc_density_", pct_label, "pct.pdf")), ppc_hist)
 
   # Bayes factor for sigma_A < delta
   post0 <- mean(draws_df$sigma_A < delta)
