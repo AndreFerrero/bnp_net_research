@@ -58,7 +58,7 @@ rstan_options(auto_write = TRUE)
 
 # Stan model
 stan_folder <- here("stan")
-beta_ppc_mod <- stan_model(file = here(stan_folder, "beta_01_1_model.stan"))
+mod <- stan_model(file = here(stan_folder, "hyper_beta.stan"))
 
 # define subn values
 reps <- c(10^4, 10^5, 10^6)
@@ -81,7 +81,7 @@ for (subn in reps) {
   )
 
   fit <- sampling(
-    object  = beta_ppc_mod,
+    object  = mod,
     data    = stan_data,
     chains  = 4,
     iter    = 20000,
@@ -96,7 +96,7 @@ for (subn in reps) {
   subn_label <- sprintf("%d", subn)
   out_file <- here(
     "poll", "fits",
-    paste0("beta_01_1_fit_", subn_label, ".Rdata")
+    paste0("hyper_beta_fit_", subn_label, ".Rdata")
   )
 
   save(fit, file = out_file)

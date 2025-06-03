@@ -8,7 +8,7 @@ library(posterior)
 # Directories
 poll_dir <- here("pollinators/mpl006")
 w_repl_dir <- here(poll_dir, "w_repl")
-plots_dir <- here(w_repl_dir, "beta_01_1_plots")
+plots_dir <- here(w_repl_dir, "hyper_beta_plots")
 fits_dir <- here(w_repl_dir, "fits")
 
 dir.create(plots_dir)
@@ -36,7 +36,7 @@ for (n in sample_sizes) {
   cat("Processing sample size", n, "...\n")
 
   # Adjust file name accordingly
-  file_name <- paste0("beta_01_1_fit_", sprintf("%d", n), ".Rdata")
+  file_name <- paste0("hyper_beta_fit_", sprintf("%d", n), ".Rdata")
   load(here(fits_dir, file_name))
 
   # diagnostics: trace, acf, dens overlay for parameters
@@ -96,7 +96,7 @@ dens_all <- ggplot(sigma_long, aes(x = value, color = factor(sample_size))) +
   facet_wrap(~parameter, scales = "free") +
   labs(
     color = "Sample size",
-    title = "Posterior densities of sigma_A and sigma_B across sample sizes"
+    title = "Posterior densities"
   ) +
   theme_minimal()
 ggsave(here(plots_dir, "sigma_densities_all.pdf"), dens_all, width = 8, height = 4)
