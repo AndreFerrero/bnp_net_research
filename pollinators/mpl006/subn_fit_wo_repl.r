@@ -23,6 +23,8 @@ total_weight <- sum(full_edges$weight)
 cat("Total edge‐weight in network:", total_weight, "\n")
 
 sub_wo_repl <- function(edges, subn) {
+  set.seed(1234)
+
   # original counts
   plant <- edges |>
     group_by(plant) |>
