@@ -28,8 +28,6 @@ data {
   
   vector<lower=0>[2] prior_alpha_A; // Gamma(shape, rate)
   vector<lower=0>[2] prior_alpha_B;
-  
-  real<lower=0> min_eps; // minimum value for epsilon (e.g., 1e-4)
 }
 parameters {
   real<lower=0> alpha_A;
@@ -38,8 +36,8 @@ parameters {
   real<lower=0, upper=1> sigma_A;
   real<lower=0, upper=1> sigma_B;
   
-  real<lower=min_eps, upper=1> eps_A;
-  real<lower=min_eps, upper=1> eps_B;
+  real<lower=1e-4, upper=1> eps_A;
+  real<lower=1e-4, upper=1> eps_B;
 }
 model {
   // Priors for alpha
