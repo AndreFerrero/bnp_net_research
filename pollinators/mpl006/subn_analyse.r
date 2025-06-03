@@ -8,11 +8,10 @@ library(posterior)
 # where things live
 poll_dir <- here("pollinators/mpl006")
 wo_repl_dir <- here(poll_dir, "wo_repl")
-w_repl_dir <- here(poll_dir, "w_repl")
-plots_dir <- here(wo_repl, poll_dir, "beta_05_1_plots")
-fits_dir <- here(wo_repl, poll_dir, "fits")
+plots_dir <- here(wo_repl_dir, "beta_01_1_plots")
+fits_dir <- here(wo_repl_dir, "fits")
 
-dir.create(plots_dir, showWarnings = FALSE)
+dir.create(plots_dir)
 
 # read original full‐edge list once
 raw_mat <- read.csv(here(poll_dir, "M_PL_006.csv"),
