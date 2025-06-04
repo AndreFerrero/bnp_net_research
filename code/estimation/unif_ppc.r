@@ -10,7 +10,7 @@ est_folder <- here(code_folder, "est")
 stan_folder <- here("stan")
 
 # local dir
-pics_folder <- here("res", "pics", "estimation", "unif_ppc")
+unif_ppc_pics_folder <- here("res", "pics", "estimation", "unif_ppc")
 
 # Load helper functions
 source(here(code_folder, "py_sample.R"))
@@ -77,7 +77,7 @@ trace_plot <- mcmc_trace(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A",
   theme(legend.position = "top")
 
 ggsave(
-  filename = here(pics_folder, "unif_ppc_trace.pdf"),
+  filename = here(unif_ppc_pics_folder, "unif_ppc_trace.pdf"),
   plot = trace_plot,
   device = "pdf",
   width = 10,
@@ -88,7 +88,7 @@ ggsave(
 acf_plot <- mcmc_acf_bar(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B"))
 
 ggsave(
-  filename = here(pics_folder, "unif_ppc_acf.pdf"),
+  filename = here(unif_ppc_pics_folder, "unif_ppc_acf.pdf"),
   plot = acf_plot,
   device = "pdf",
   width = 10,
@@ -96,10 +96,11 @@ ggsave(
 )
 
 # Posterior densities
-dens_plot <- mcmc_dens_overlay(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B"))
+dens_plot <- mcmc_dens_overlay(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B")) +
+  theme(legend.position = "top")
 
 ggsave(
-  filename = here(pics_folder, "unif_ppc_dens.pdf"),
+  filename = here(unif_ppc_pics_folder, "unif_ppc_dens.pdf"),
   plot = dens_plot,
   device = "pdf",
   width = 10,
@@ -109,18 +110,18 @@ ggsave(
 # PPC observed network density
 
 # Convert to posterior draws
-draws <- as_draws_df(unif_ppc_fit)
+unif_ppc_draws <- as_draws_df(unif_ppc_fit)
 
 d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
-d_ppc <- draws$density_ppc
+unif_d_ppc <- unif_ppc_draws$density_ppc
 
 # Summary of PPC
-d_quantile <- quantile(d_ppc, probs = c(0.025, 0.5, 0.975))
+d_quantile <- quantile(unif_d_ppc, probs = c(0.025, 0.5, 0.975))
 print(d_quantile)
 cat("Observed density:", round(d_obs, 4), "\n")
 
 # PPC histogram
-ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
   geom_histogram(bins = 30, color = "black", fill = "lightblue") +
   geom_vline(xintercept = d_obs, color = "red", size = 1) +
   labs(
@@ -130,7 +131,7 @@ ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
   theme_minimal()
 
 ggsave(
-  filename = here(pics_folder, "unif_ppc_density_histogram.pdf"),
+  filename = here(unif_ppc_pics_folder, "unif_ppc_density_histogram.pdf"),
   plot = ppc_plot,
   device = "pdf",
   width = 8,
@@ -139,8 +140,8 @@ ggsave(
 
 # Bayes Factor
 delta <- 0.05
-post_0 <- mean(draws$sigma_A < delta)
-post_1 <- mean(draws$sigma_A > delta)
+post_0 <- mean(unif_ppc_draws$sigma_A < delta)
+post_1 <- mean(unif_ppc_draws$sigma_A > delta)
 prior_0 <- pbeta(delta, 1, 1)
 prior_1 <- pbeta(delta, 1, 1, lower.tail = FALSE)
 

@@ -62,7 +62,7 @@ print(post_summary |> round(digits = 3))
 
 
 # local dir
-pics_folder <- here("res", "pics", "estimation", "beta_ppc_eps_005")
+beta_ppc_pics_folder <- here("res", "pics", "estimation", "beta_ppc_eps_005")
 
 trace_plot <- mcmc_trace(beta_ppc_fit, pars = c(
   "alpha_A", "alpha_B",
@@ -71,7 +71,7 @@ trace_plot <- mcmc_trace(beta_ppc_fit, pars = c(
   theme(legend.position = "top")
 
 ggsave(
-  filename = here(pics_folder, "beta_ppc_eps_005_trace.pdf"),
+  filename = here(beta_ppc_pics_folder, "beta_ppc_eps_005_trace.pdf"),
   plot = trace_plot,
   device = "pdf",
   width = 10,
@@ -85,7 +85,7 @@ acf_plot <- mcmc_acf_bar(beta_ppc_fit, pars = c(
   theme(legend.position = "top")
 
 ggsave(
-  filename = here(pics_folder, "beta_ppc_eps_005_acf.pdf"),
+  filename = here(beta_ppc_pics_folder, "beta_ppc_eps_005_acf.pdf"),
   plot = acf_plot,
   device = "pdf",
   width = 10,
@@ -97,7 +97,7 @@ dens_plot <- mcmc_dens_overlay(beta_ppc_fit, pars = c("alpha_A", "alpha_B", "sig
   theme(legend.position = "top")
 
 ggsave(
-  filename = here(pics_folder, "beta_ppc_eps_005_dens.pdf"),
+  filename = here(beta_ppc_pics_folder, "beta_ppc_eps_005_dens.pdf"),
   plot = dens_plot,
   device = "pdf",
   width = 10,
@@ -110,16 +110,16 @@ ggsave(
 d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
 
 library(posterior)
-draws <- as_draws_df(beta_ppc_fit)
-d_ppc <- draws$density_ppc
+beta_ppc_draws <- as_draws_df(beta_ppc_fit)
+beta_d_ppc <- beta_ppc_draws$density_ppc
 
 # 4.3 Summaries of the PPC distribution
-d_quantile <- quantile(d_ppc, probs = c(0.025, 0.5, 0.975))
+d_quantile <- quantile(beta_d_ppc, probs = c(0.025, 0.5, 0.975))
 print(d_quantile)
 cat("Observed density:", round(d_obs, 4), "\n")
 
 # 4.4 Plot the PPC histogram with observed line
-ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+ppc_plot <- ggplot(data.frame(density = beta_d_ppc), aes(x = density)) +
   geom_histogram(bins = 30, color = "black", fill = "lightblue") +
   geom_vline(xintercept = d_obs, color = "red", size = 1) +
   labs(
@@ -130,7 +130,7 @@ ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
   theme_minimal()
 
 ggsave(
-  filename = here(pics_folder, "unif_ppc_density_histogram.pdf"),
+  filename = here(beta_ppc_pics_folder, "unif_ppc_density_histogram.pdf"),
   plot = ppc_plot,
   device = "pdf",
   width = 8,
@@ -141,8 +141,8 @@ ggsave(
 delta <- 0.05
 
 # P(sigma_A < delta | Y)
-(post_0 <- mean(draws$sigma_A < delta))
-post_1 <- mean(draws$sigma_A > delta)
+(post_0 <- mean(beta_ppc_draws$sigma_A < delta))
+post_1 <- mean(beta_ppc_draws$sigma_A > delta)
 
 prior_0 <- pbeta(delta, 0.05, 1)
 prior_1 <- pbeta(delta, 0.05, 1, lower.tail = FALSE)
