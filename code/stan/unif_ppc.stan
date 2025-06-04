@@ -26,50 +26,30 @@ data {
   int<lower=1>   K_B;              // number of B-side nodes
   array[K_A] int<lower=1> n_A;         // counts for A
   array[K_B] int<lower=1> n_B;         // counts for B
-
-  vector<lower=0>[2] prior_alpha_A; // Gamma(shape, rate)
-  vector<lower=0>[2] prior_alpha_B;
-
-  real<lower=0> eps;               // small epsilon for spike~Beta(eps,1)
+  vector<lower=0>[2]  prior_alpha_A;
+  vector<lower=0>[2]  prior_alpha_B;
+  vector<lower=0>[2]  prior_sigma_A;
+  vector<lower=0>[2]  prior_sigma_B;
   
   int<lower=1> e_obs; // observed edges
 }
 
 parameters {
-  real<lower=0>        alpha_A;
-  real<lower=0>        alpha_B;
-  real<lower=0,upper=1> sigma_A;
-  real<lower=0,upper=1> sigma_B;
-  
-  real<lower=0,upper=1> w_A;
-  real<lower=0,upper=1> w_B;
+  real<lower = 0> alpha_A;
+  real<lower = 0> alpha_B;
+  real<lower = 0, upper = 1> sigma_A;
+  real<lower = 0, upper = 1> sigma_B;
 }
 
 model {
-  // Priors on alpha
-  alpha_A ~ gamma(prior_alpha_A[1], prior_alpha_A[2]);
-  alpha_B ~ gamma(prior_alpha_B[1], prior_alpha_B[2]);
+  alpha_A ~ gamma(prior_alpha_A[1],prior_alpha_A[2]);
+  alpha_B ~ gamma(prior_alpha_B[1],prior_alpha_B[2]);
   
-  w_A ~ beta(1,1);
-  w_B ~ beta(1,1);
+  sigma_A ~ beta(prior_sigma_A[1], prior_sigma_A[2]);
+  sigma_B ~ beta(prior_sigma_B[1], prior_sigma_B[2]);
   
-  // Spike-and-slab prior for sigma_A
-  target += log_mix(
-    w_A,
-    beta_lpdf(sigma_A | eps, 100),  // spike near zero
-    beta_lpdf(sigma_A | 1, 1)  // flat slab
-  );
-
-  // Spike-and-slab prior for sigma_B
-  target += log_mix(
-    w_B,
-    beta_lpdf(sigma_B | eps, 100),
-    beta_lpdf(sigma_B | 1, 1)
-  );
-
-  // Likelihood contributions via EPPF
-  target += eppf_lp(n_A, K_A, alpha_A, sigma_A)
-          + eppf_lp(n_B, K_B, alpha_B, sigma_B);
+  target += eppf_lp(n_A, K_A, alpha_A, sigma_A) +
+          eppf_lp(n_B, K_B, alpha_B, sigma_B);
 }
 
 generated quantities {
