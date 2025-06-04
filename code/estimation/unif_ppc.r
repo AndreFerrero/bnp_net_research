@@ -3,8 +3,9 @@ library(bayesplot)
 library(ggplot2)
 library(here)
 
-source("code/funs/py_sample.R")
-source("code/funs/sample_net.R")
+# cluster directories
+source("py_sample.R")
+source("sample_net.R")
 
 options(
   mc.cores = 4,
@@ -20,8 +21,8 @@ net <- sample_net(1e4,
   alpha = alpha_true,
   sigma = sigma_true
 )
-
-stan_folder <- here("code", "stan")
+# cluster folder
+stan_folder <- here("stan")
 unif_ppc_path <- here(stan_folder, "unif_ppc.stan")
 unif_ppc_mod <- stan_model(file = unif_ppc_path)
 
@@ -49,7 +50,8 @@ unif_ppc_fit <- sampling(
   control = list(adapt_delta = 0.95)
 )
 
-est_folder <- here("code", "estimation")
+# cluster folder
+est_folder <- here("est")
 
 save(unif_ppc_fit, file = here(est_folder, "unif_ppc_fit.Rdata"))
 
