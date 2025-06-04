@@ -97,7 +97,7 @@ dens_plot <- mcmc_dens_overlay(beta_ppc_fit, pars = c("alpha_A", "alpha_B", "sig
   theme(legend.position = "top")
 
 ggsave(
-  filename = here(beta_ppc_pics_folder, "beta_ppc_eps_005_dens.pdf"),
+  filename = here(beta_ppc_pics_folder, "beta_ppc_eps_005_post.pdf"),
   plot = dens_plot,
   device = "pdf",
   width = 10,
@@ -130,7 +130,7 @@ ppc_plot <- ggplot(data.frame(density = beta_d_ppc), aes(x = density)) +
   theme_minimal()
 
 ggsave(
-  filename = here(beta_ppc_pics_folder, "unif_ppc_density_histogram.pdf"),
+  filename = here(beta_ppc_pics_folder, "unif_ppc_dens.pdf"),
   plot = ppc_plot,
   device = "pdf",
   width = 8,

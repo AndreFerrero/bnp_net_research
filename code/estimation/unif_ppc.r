@@ -80,8 +80,8 @@ ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_trace.pdf"),
   plot = trace_plot,
   device = "pdf",
-  width = 10,
-  height = 6
+  width = 6,
+  height = 4
 )
 
 # ACF plot
@@ -91,8 +91,8 @@ ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_acf.pdf"),
   plot = acf_plot,
   device = "pdf",
-  width = 10,
-  height = 6
+  width = 6,
+  height = 4
 )
 
 # Posterior densities
@@ -100,11 +100,10 @@ dens_plot <- mcmc_dens_overlay(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sig
   theme(legend.position = "top")
 
 ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_dens.pdf"),
+  filename = here(unif_ppc_pics_folder, "unif_ppc_post.pdf"),
   plot = dens_plot,
-  device = "pdf",
-  width = 10,
-  height = 6
+  width = 6,
+  height = 4
 )
 
 # PPC observed network density
@@ -131,11 +130,10 @@ ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
   theme_minimal()
 
 ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_density_histogram.pdf"),
+  filename = here(unif_ppc_pics_folder, "unif_ppc_dens.pdf"),
   plot = ppc_plot,
-  device = "pdf",
-  width = 8,
-  height = 5
+  width = 6,
+  height = 4
 )
 
 # Bayes Factor
