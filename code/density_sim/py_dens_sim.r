@@ -215,7 +215,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     data = label_df,
     aes(label = label),
     hjust = -0.1,
-    vjust = -2,
+    vjust = -0.4,
     size = 3,
     show.legend = FALSE
   ) +
@@ -249,9 +249,8 @@ combined_plot <- (p_dens + log2_p_dens_slopes) +
     legend.box.just = "center"
   )
 
-
 ggsave(
   here("res", "pics", "density_analysis", "py", "grid_dens.pdf"),
   combined_plot,
-  width = 12, height = 6
+  width = 7, height = 4
 )

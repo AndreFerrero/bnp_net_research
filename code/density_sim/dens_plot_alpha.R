@@ -1,19 +1,21 @@
 library(ggplot2)
 load(here("res", "sims", "alpha", "100alpha_density_results.Rdata"))
-dens_plot = function(alpha_dens) {
+dens_plot <- function(alpha_dens) {
   # Ensure threshold is a factor (discrete)
   alpha_dens$threshold_f <- factor(alpha_dens$threshold, levels = sort(unique(alpha_dens$threshold)))
-  
+
   # Generate a visually progressive color palette (e.g., viridis)
   num_thresholds <- length(levels(alpha_dens$threshold_f))
   palette_colors <- viridis::viridis(num_thresholds)
-  
+
   # Create 10^x expression labels for the legend
   threshold_labels <- parse(text = paste0("10^", log10(as.numeric(levels(alpha_dens$threshold_f)))))
-  
-  ggplot(alpha_dens, aes(x = alpha, y = mean_density, 
-                         group = threshold_f, 
-                         color = threshold_f)) +
+
+  ggplot(alpha_dens, aes(
+    x = alpha, y = mean_density,
+    group = threshold_f,
+    color = threshold_f
+  )) +
     geom_line(size = 0.5, alpha = 0.6) +
     geom_point(size = 2, alpha = 1) +
     scale_color_manual(
@@ -42,10 +44,12 @@ dens_plot = function(alpha_dens) {
 }
 
 
-dens_plot(alpha_dens100)
+alpha_plot <- dens_plot(alpha_dens100)
 
-ggsave("res/pics/density_analysis/alpha/100net_alpha_density_DP.pdf",
-       width = 8,
-       height = 5,
-       dpi = 600,
-       bg = "white")
+ggsave(
+  filename = "res/pics/density_analysis/alpha/100net_alpha_density_DP.pdf",
+  plot = alpha_plot,
+  width = 7,
+  height = 4,
+  bg = "white"
+)
