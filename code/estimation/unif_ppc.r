@@ -1,16 +1,16 @@
 library(rstan)
-library(bayesplot)
-library(ggplot2)
 library(here)
 library(posterior)
+library(bayesplot)
+library(ggplot2)
 
 # cluster dirs
-code_folder <- here("code")
-est_folder <- here(code_folder, "est")
+code_folder <- here("code", "funs")
+est_folder <- here("estimation")
 stan_folder <- here("stan")
 
 # local dir
-unif_ppc_pics_folder <- here("res", "pics", "estimation", "unif_ppc")
+unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_02_unif_ppc")
 
 # Load helper functions
 source(here(code_folder, "py_sample.R"))
@@ -26,7 +26,7 @@ set.seed(42)
 
 # True parameters
 alpha_true <- c(5, 5)
-sigma_true <- c(0, 0.7)
+sigma_true <- c(0, 0.2)
 
 # Simulate network data
 net <- sample_net(1e4,
@@ -64,7 +64,7 @@ unif_ppc_fit <- sampling(
 )
 
 # Save the fit
-save(unif_ppc_fit, file = here(est_folder, "unif_ppc_fit.Rdata"))
+save(unif_ppc_fit, file = here(est_folder, "0_02_unif_ppc_fit.Rdata"))
 
 check_hmc_diagnostics(unif_ppc_fit)
 
