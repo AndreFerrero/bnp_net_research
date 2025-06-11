@@ -6,15 +6,15 @@ library(tidyverse)
 library(posterior)
 
 # where things live
-poll_dir <- here("pollinators/mpl006")
+poll_dir <- here("pollinators/mpl06005")
 wo_repl_dir <- here(poll_dir, "wo_repl")
-plots_dir <- here(wo_repl_dir, "hyper_beta_plots")
-fits_dir <- here(wo_repl_dir, "hyper_beta_fits")
+plots_dir <- here(wo_repl_dir, "unif_plots")
+fits_dir <- here(wo_repl_dir, "unif_fit")
 
 dir.create(plots_dir)
 
 # read original full‐edge list once
-raw_mat <- read.csv(here(poll_dir, "M_PL_006.csv"),
+raw_mat <- read.csv(here(poll_dir, "M_PL_060_05.csv"),
   check.names = FALSE, row.names = 1
 )
 full_edges <- raw_mat %>%
@@ -57,7 +57,7 @@ bf_summary <- tibble()
 for (p in percentages) {
   pct_label <- sprintf("%03d", round(100 * p))
   cat("Processing", pct_label, "…\n")
-  load(here(fits_dir, paste0("hyper_beta_fit_", pct_label, "pct.Rdata")))
+  load(here(fits_dir, paste0("unif_ppc_fit_", pct_label, "pct.Rdata")))
 
   # recompute d_obs & e_obs
   ss <- compute_d_obs(full_edges, round(total_weight * p))
@@ -81,16 +81,16 @@ for (p in percentages) {
 
   # PPC on network density
   draws_df <- as_draws_df(fit)
-  # d_ppc <- draws_df$density_ppc
-  # ppc_hist <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
-  #   geom_histogram(bins = 30, color = "black", fill = "lightblue") +
-  #   geom_vline(xintercept = ss$d_obs, color = "red", size = 1) +
-  #   labs(
-  #     title = paste0(pct_label, "% PPC density"),
-  #     x = expression(d == e / (K[D] * K[G]))
-  #   ) +
-  #   theme_minimal()
-  # ggsave(here(plots_dir, paste0("ppc_density_", pct_label, "pct.pdf")), ppc_hist)
+  d_ppc <- draws_df$density_ppc
+  ppc_hist <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+    geom_histogram(bins = 30, color = "black", fill = "lightblue") +
+    geom_vline(xintercept = ss$d_obs, color = "red", size = 1) +
+    labs(
+      title = paste0(pct_label, "% PPC density"),
+      x = expression(d == e / (K[D] * K[G]))
+    ) +
+    theme_minimal()
+  ggsave(here(plots_dir, paste0("ppc_density_", pct_label, "pct.pdf")), ppc_hist)
 
   # Bayes factor for sigma_A < delta
   post0 <- mean(draws_df$sigma_A < delta)
