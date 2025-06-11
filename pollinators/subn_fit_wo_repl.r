@@ -68,7 +68,7 @@ rstan_options(auto_write = TRUE)
 
 # Stan model
 stan_folder <- here("stan")
-mod <- stan_model(file = here(stan_folder, "unif_ppc.stan"))
+mod <- stan_model(file = here(stan_folder, "spike_ppc.stan"))
 
 
 print("Created wo_repl folder")
@@ -85,15 +85,14 @@ for (p in percentages) {
   sub_edges <- sub_wo_repl(full_edges, subn)
 
   stan_data <- list(
-    K_A           = nrow(sub_edges$sub_plant),
-    K_B           = nrow(sub_edges$sub_poll),
-    n_A           = sub_edges$sub_plant$counts,
-    n_B           = sub_edges$sub_poll$counts,
+    K_A = nrow(sub_edges$sub_plant),
+    K_B = nrow(sub_edges$sub_poll),
+    n_A = sub_edges$sub_plant$counts,
+    n_B = sub_edges$sub_poll$counts,
     prior_alpha_A = c(3, 0.4),
     prior_alpha_B = c(3, 0.4),
-    prior_sigma_A = c(1, 1),
-    prior_sigma_B = c(1, 1),
-    e_obs         = sub_edges$e_obs
+    eps = 0.1,
+    e_obs = sub_edges$e_obs
   )
 
   fit <- sampling(
@@ -112,7 +111,7 @@ for (p in percentages) {
   pct_label <- sprintf("%03d", round(p * 100))
   out_file <- here(
     "poll", "wo_repl",
-    paste0("unif_ppc_fit_", pct_label, "pct.Rdata")
+    paste0("spike_ppc_fit_", pct_label, "pct.Rdata")
   )
   save(fit, file = out_file)
 }

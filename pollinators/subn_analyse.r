@@ -5,15 +5,15 @@ library(here)
 library(tidyverse)
 library(posterior)
 
-# where things live
+# Set up directories
 poll_dir <- here("pollinators/mpl06005")
 wo_repl_dir <- here(poll_dir, "wo_repl")
 plots_dir <- here(wo_repl_dir, "unif_plots")
 fits_dir <- here(wo_repl_dir, "unif_fit")
 
-dir.create(plots_dir)
+dir.create(plots_dir, showWarnings = FALSE)
 
-# read original full‐edge list once
+# Load full data
 raw_mat <- read.csv(here(poll_dir, "M_PL_060_05.csv"),
   check.names = FALSE, row.names = 1
 )
@@ -24,9 +24,8 @@ full_edges <- raw_mat %>%
 
 total_weight <- sum(full_edges$weight)
 
-# helper to recompute d_obs at a given subn
+# Compute observed density
 compute_d_obs <- function(edges, subn) {
-  # identical to your sub() minus summarise
   tickets <- rep(seq_len(nrow(edges)), times = edges$weight)
   sel <- sample(tickets, size = subn, replace = FALSE)
   df <- as.data.frame(table(sel), stringsAsFactors = FALSE) %>%
@@ -46,24 +45,26 @@ compute_d_obs <- function(edges, subn) {
   )
 }
 
-# percentages to loop
+# Parameters to iterate
 percentages <- c(0.1, 0.2, 0.4, 0.6, 0.8, 1.0)
-delta <- 0.1
+delta_values <- c(0.1, 0.05, 0.01)
 
-# containers for summary across fits
+# Storage
 sigma_summaries <- tibble()
-bf_summary <- tibble()
+bf_all_deltas <- tibble()
 
+# Main loop over fits
 for (p in percentages) {
   pct_label <- sprintf("%03d", round(100 * p))
   cat("Processing", pct_label, "…\n")
   load(here(fits_dir, paste0("unif_ppc_fit_", pct_label, "pct.Rdata")))
 
-  # recompute d_obs & e_obs
+  # Recompute d_obs
   ss <- compute_d_obs(full_edges, round(total_weight * p))
 
-  # diagnostics: trace, acf, dens overlay for 4 parameters
+  # Diagnostics
   pars <- c("alpha_A", "alpha_B", "sigma_A", "sigma_B")
+
   trace_plot <- mcmc_trace(fit, pars = pars) +
     ggtitle(paste0(pct_label, "% trace")) +
     theme(legend.position = "top")
@@ -79,7 +80,7 @@ for (p in percentages) {
     theme(legend.position = "top")
   ggsave(here(plots_dir, paste0("dens_overlay_", pct_label, "pct.pdf")), dens_plot)
 
-  # PPC on network density
+  # Posterior predictive check
   draws_df <- as_draws_df(fit)
   d_ppc <- draws_df$density_ppc
   ppc_hist <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
@@ -92,15 +93,7 @@ for (p in percentages) {
     theme_minimal()
   ggsave(here(plots_dir, paste0("ppc_density_", pct_label, "pct.pdf")), ppc_hist)
 
-  # Bayes factor for sigma_A < delta
-  post0 <- mean(draws_df$sigma_A < delta)
-  post1 <- mean(draws_df$sigma_A > delta)
-  prior0 <- pbeta(delta, 0.05, 1)
-  prior1 <- 1 - prior0
-  bf <- (post0 / post1) * (prior1 / prior0)
-  log10_bf <- log10(bf)
-
-  # store summaries for later plotting
+  # Posterior storage
   sigma_summaries <- bind_rows(
     sigma_summaries,
     tibble(
@@ -109,18 +102,29 @@ for (p in percentages) {
       sigma_B    = draws_df$sigma_B
     )
   )
-  bf_summary <- bind_rows(
-    bf_summary,
-    tibble(
-      pct     = 100 * p,
-      BF      = bf,
-      log10BF = log10_bf
+
+  # Compute Bayes Factors for all deltas
+  for (delta in delta_values) {
+    post0 <- mean(draws_df$sigma_A < delta)
+    post1 <- mean(draws_df$sigma_A > delta)
+    prior0 <- pbeta(delta, 1, 1)
+    prior1 <- 1 - prior0
+    bf <- (post0 / post1) * (prior1 / prior0)
+    log10_bf <- log10(bf)
+
+    bf_all_deltas <- bind_rows(
+      bf_all_deltas,
+      tibble(
+        pct     = 100 * p,
+        delta   = delta,
+        BF      = bf,
+        log10BF = log10_bf
+      )
     )
-  )
+  }
 }
 
-# ---- Plot posterior densities of sigma_A and sigma_B across sample sizes ----
-# we’ll facet by parameter for clarity
+# Plot posterior densities
 sigma_long <- sigma_summaries %>%
   pivot_longer(c(sigma_A, sigma_B), names_to = "parameter", values_to = "value")
 
@@ -131,17 +135,67 @@ dens_all <- ggplot(sigma_long, aes(x = value, color = factor(pct))) +
     color = "% data",
     title = "Posterior densities across subsample sizes"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.y = element_blank())
+
 ggsave(here(plots_dir, "sigma_densities_all.pdf"), dens_all, width = 8, height = 4)
 
-# ---- Plot Bayes factor vs. percentage ----
-bf_plot <- ggplot(bf_summary, aes(x = pct, y = log10BF)) +
+# ---- Separate Bayes Factor plots with fixed y-axis ticks and limits ----
+y_ticks <- c(0, 0.5, 1, 2)
+
+for (delta in delta_values) {
+  df_delta <- bf_all_deltas %>% filter(delta == !!delta)
+  delta_label <- str_replace(format(delta, nsmall = 2), "\\.", "")
+
+  bf_plot <- ggplot(df_delta, aes(x = pct, y = log10BF)) +
+    geom_line() +
+    geom_point() +
+    labs(
+      x = "% data",
+      y = "log10 Bayes Factor",
+      title = bquote("Bayes factor for " ~ sigma[A] < .(delta))
+    ) +
+    scale_x_continuous(
+      breaks = unique(df_delta$pct),
+      expand = c(0.01, 0)
+    ) +
+    scale_y_continuous(
+      breaks = y_ticks,
+      limits = c(0, 2), # force showing tick at 2
+      expand = c(0.01, 0)
+    ) +
+    theme_minimal()
+
+  ggsave(
+    here(plots_dir, paste0("bayes_factor_delta_", delta_label, ".pdf")),
+    bf_plot,
+    width = 6, height = 4
+  )
+}
+
+# ---- Combined Bayes Factor plot with fixed y-axis limits ----
+bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF, color = factor(delta))) +
   geom_line() +
   geom_point() +
   labs(
     x = "% data",
     y = "log10 Bayes Factor",
-    title = bquote("Bayes factor for " ~ sigma[A] < .(delta))
+    color = expression(delta),
+    title = expression("Bayes factor for " ~ sigma[A] < delta)
+  ) +
+  scale_x_continuous(
+    breaks = unique(bf_all_deltas$pct),
+    expand = c(0.01, 0)
+  ) +
+  scale_y_continuous(
+    breaks = y_ticks,
+    limits = c(0, 2), # force showing tick at 2
+    expand = c(0.01, 0)
   ) +
   theme_minimal()
-ggsave(here(plots_dir, "bayes_factor_vs_pct.pdf"), bf_plot, width = 6, height = 4)
+
+ggsave(
+  here(plots_dir, "bayes_factor_all_deltas.pdf"),
+  bf_combined_plot,
+  width = 7, height = 4
+)

@@ -4,17 +4,12 @@ library(posterior)
 library(bayesplot)
 library(ggplot2)
 
-# cluster dirs
-code_folder <- here("code", "funs")
-est_folder <- here("estimation")
-stan_folder <- here("stan")
-
-# local dir
-unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_02_unif_ppc")
+# pics folder
+unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_07_unif_ppc")
 
 # Load helper functions
-source(here(code_folder, "py_sample.R"))
-source(here(code_folder, "sample_net.R"))
+source("code/funs/py_sample.R")
+source("code/funs/sample_net.R")
 
 # Set options
 options(
@@ -26,7 +21,7 @@ set.seed(42)
 
 # True parameters
 alpha_true <- c(5, 5)
-sigma_true <- c(0, 0.2)
+sigma_true <- c(0, 0.7)
 
 # Simulate network data
 net <- sample_net(1e4,
@@ -64,7 +59,7 @@ unif_ppc_fit <- sampling(
 )
 
 # Save the fit
-save(unif_ppc_fit, file = here(est_folder, "0_02_unif_ppc_fit.Rdata"))
+save(unif_ppc_fit, file = here(est_folder, "0_07_unif_ppc_fit.Rdata"))
 
 check_hmc_diagnostics(unif_ppc_fit)
 
@@ -97,13 +92,13 @@ ggsave(
 
 # Posterior densities
 dens_plot <- mcmc_dens_overlay(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B")) +
-  theme(legend.position = "top")
+  theme(legend.position = "none")
 
 ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_post.pdf"),
   plot = dens_plot,
-  width = 6,
-  height = 4
+  width = 4,
+  height = 3
 )
 
 # PPC observed network density
@@ -124,16 +119,17 @@ ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
   geom_histogram(bins = 30, color = "black", fill = "lightblue") +
   geom_vline(xintercept = d_obs, color = "red", size = 1) +
   labs(
-    x = expression(d == e / (K[D] * K[G])),
+    x = NULL,
     y = NULL
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.y = element_blank())
 
 ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_dens.pdf"),
   plot = ppc_plot,
-  width = 6,
-  height = 4
+  width = 4,
+  height = 3
 )
 
 # Bayes Factor
