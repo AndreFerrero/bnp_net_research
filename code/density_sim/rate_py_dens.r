@@ -149,13 +149,16 @@ ggplot(slopes_df, aes(x = sigma, y = slope)) +
   ) +
   theme_minimal(base_size = 14)
 
+ggsave(filename = here("res", "pics", "density_analysis", "rate", "slope_sigma.pdf"))
+
 ggplot(dens_summary, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
-  geom_line(size = 0.1) +
-  geom_point(aes(shape = factor(sigmaA)), size = 0.5, stroke = 0.8) +
-  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
+  geom_line(size = 0.3) +
+  geom_point(aes(shape = factor(sigmaA)), size = 1, stroke = 0.8) +
+  scale_shape_manual(values = 0:9) +
   scale_x_continuous(
-    breaks = log2(c(100, 1000, 10000, 100000)),
+    breaks = log2(c(2^4, 100, 1000, 10000, 100000)),
     labels = c(
+      expression(2^4),
       expression(10^2),
       expression(10^3),
       expression(10^4),
@@ -175,10 +178,12 @@ ggplot(dens_summary, aes(x = log2_size, y = mean_density, color = factor(sigmaA)
     panel.grid.minor = element_blank()
   )
 
+ggsave(filename = here("res", "pics", "density_analysis", "py", "many_log2_dens.pdf"))
+
 ggplot(dens_summary, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
-  geom_line(size = 1) +
-  geom_point(aes(shape = factor(sigmaA)), size = 3, stroke = 0.8) +
-  geom_ribbon(aes(ymin = log2_ci_lower, ymax = log2_ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
+  geom_line(size = 0.3) +
+  geom_point(aes(shape = factor(sigmaA)), size = 1, stroke = 0.8) +
+  scale_shape_manual(values = 0:9) +
 
   # X-axis: log2 of size with 10^j labels
   scale_x_continuous(
@@ -203,3 +208,5 @@ ggplot(dens_summary, aes(x = log2_size, y = log2_density, color = factor(sigmaA)
     legend.position = "bottom",
     panel.grid.minor = element_blank()
   )
+
+ggsave(filename = here("res", "pics", "density_analysis", "py", "many_loglog2_dens.pdf"))
