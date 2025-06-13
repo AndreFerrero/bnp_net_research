@@ -17,6 +17,7 @@ dir.create(plots_dir, showWarnings = FALSE)
 raw_mat <- read.csv(here(poll_dir, "M_PL_060_05.csv"),
   check.names = FALSE, row.names = 1
 )
+
 full_edges <- raw_mat %>%
   rownames_to_column("plant") %>%
   pivot_longer(-plant, names_to = "pollinator", values_to = "weight") %>%
@@ -125,20 +126,43 @@ for (p in percentages) {
 }
 
 # Plot posterior densities
+library(viridis)
+
 sigma_long <- sigma_summaries %>%
   pivot_longer(c(sigma_A, sigma_B), names_to = "parameter", values_to = "value")
 
-dens_all <- ggplot(sigma_long, aes(x = value, color = factor(pct))) +
-  geom_density() +
-  facet_wrap(~parameter, scales = "free") +
-  labs(
-    color = "% data",
-    title = "Posterior densities across subsample sizes"
-  ) +
-  theme_minimal() +
-  theme(axis.text.y = element_blank())
+parameter_labels <- c(
+  sigma_A = "sigma[A]",
+  sigma_B = "sigma[B]"
+)
 
-ggsave(here(plots_dir, "sigma_densities_all.pdf"), dens_all, width = 8, height = 4)
+dens_all <- ggplot(sigma_long, aes(x = value, color = factor(pct))) +
+  geom_density(key_glyph = "path") +
+  facet_wrap(
+    ~parameter,
+    scales = "free",
+    labeller = labeller(parameter = as_labeller(parameter_labels, label_parsed))
+  ) +
+  scale_color_viridis_d(
+    option = "B",
+    end = 0.9,
+    direction = -1,
+    guide = guide_legend(nrow = 1, override.aes = list(linetype = 1, shape = NA, fill = NA))
+  ) +
+  labs(
+    color = "% data"
+  ) +
+  ylab("Posterior density") +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal",
+    axis.text.y = element_blank(),
+    axis.title.x = element_blank()
+  )
+
+
+ggsave(here(plots_dir, "sigma_densities_all_viridisB.pdf"), dens_all, width = 8, height = 4)
 
 # ---- Separate Bayes Factor plots with fixed y-axis ticks and limits ----
 y_ticks <- c(0, 0.5, 1, 2)
@@ -174,13 +198,25 @@ for (delta in delta_values) {
 }
 
 # ---- Combined Bayes Factor plot with fixed y-axis limits ----
-bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF, color = factor(delta))) +
-  geom_line() +
-  geom_point() +
+library(viridis)
+
+bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
+  geom_line(aes(linetype = factor(delta), group = factor(delta)), color = "black") + # solid black lines with different linetypes
+  geom_point(aes(color = factor(pct))) + # points colored by pct
+  scale_color_viridis_d(
+    option = "B",
+    end = 0.9,
+    direction = -1,
+    guide = guide_legend(nrow = 1),
+    name = "% data"
+  ) +
+  scale_linetype_manual(
+    values = c("solid", "dashed", "dotted"),
+    name = expression(delta)
+  ) +
   labs(
     x = "% data",
     y = "log10 Bayes Factor",
-    color = expression(delta),
     title = expression("Bayes factor for " ~ sigma[A] < delta)
   ) +
   scale_x_continuous(
@@ -189,13 +225,19 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF, color = fact
   ) +
   scale_y_continuous(
     breaks = y_ticks,
-    limits = c(0, 2), # force showing tick at 2
+    limits = c(0, 2),
     expand = c(0.01, 0)
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal"
+  )
+
+
 
 ggsave(
-  here(plots_dir, "bayes_factor_all_deltas.pdf"),
+  here(plots_dir, "bayes_factor_all_deltas_col.pdf"),
   bf_combined_plot,
   width = 7, height = 4
 )
