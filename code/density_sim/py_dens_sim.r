@@ -132,11 +132,10 @@ summary_stats <- summary_stats |>
 # Save summary under root_dir
 saveRDS(summary_stats, file.path(root_dir, "density_summary.rds"))
 write.csv(summary_stats, file.path(root_dir, "density_summary.csv"), row.names = FALSE)
-write.csv(summary_stats, file.path(here("res", "density_PY", "new_sim", "density_summary.csv")), row.names = FALSE)
 
 
 # PLOTTING ---------------------------------------------------------------
-summary_stats <- read.csv(here("res", "density_PY", "new_sim", "density_summary.csv"))
+summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_dp_py.csv"))
 library(ggplot2)
 
 # Fit linear models and extract slopes per sigma
@@ -190,7 +189,7 @@ p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = fac
   )
 
 
-ggsave(p_dens, filename = here("res", "pics", "density_analysis", "py", "log2_dens.pdf"))
+ggsave(p_dens, filename = here("res", "pics", "density_analysis", "both", "log2_dens.pdf"))
 
 log2_p_dens <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
   geom_line(size = 1) +
@@ -235,7 +234,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     data = label_df,
     aes(label = label),
     hjust = -0.1,
-    vjust = -0.4,
+    vjust = -0.9,
     size = 3,
     show.legend = FALSE
   ) +
@@ -257,7 +256,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
   )
 
 # Save the updated plot
-ggsave(log2_p_dens_slopes, filename = here("res", "pics", "density_analysis", "py", "loglog2_dens_slopes.pdf"))
+ggsave(log2_p_dens_slopes, filename = here("res", "pics", "density_analysis", "both", "loglog2_dens_slopes.pdf"))
 
 library(patchwork)
 
@@ -272,7 +271,7 @@ combined_plot <- (p_dens + log2_p_dens_slopes) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "py", "grid_dens.pdf"),
+  here("res", "pics", "density_analysis", "both", "grid_dens.pdf"),
   combined_plot,
   width = 7, height = 4
 )
