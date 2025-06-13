@@ -135,7 +135,7 @@ write.csv(summary_stats, file.path(root_dir, "density_summary.csv"), row.names =
 
 
 # PLOTTING ---------------------------------------------------------------
-summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_dp_py.csv"))
+summary_stats <- read.csv(here("res", "density_PY", "new_sim", "density_summary.csv"))
 library(ggplot2)
 
 # Fit linear models and extract slopes per sigma
@@ -161,11 +161,55 @@ label_df <- summary_stats |>
   mutate(label = paste0("slope = ", round(slope, 2)))
 
 
+# p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
+#   geom_line(size = 0.1) +
+#   geom_point(size = 1) +
+#   geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
+#   scale_shape_manual(values = rep(15, length(unique(summary_stats$sigmaA)))) +
+#   scale_x_continuous(
+#     breaks = log2(c(100, 1000, 10000, 100000)),
+#     labels = c(
+#       expression(10^2),
+#       expression(10^3),
+#       expression(10^4),
+#       expression(10^5)
+#     )
+#   ) +
+#   labs(
+#     x = "n",
+#     y = "density",
+#     color = expression(sigma),
+#     fill = expression(sigma),
+#     shape = expression(sigma)
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     legend.position = "bottom",
+#     panel.grid.minor = element_blank()
+# )
+
 p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
   geom_line(size = 0.1) +
-  geom_point(aes(shape = factor(sigmaA)), size = 1.5, stroke = 0.8) +
-  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
-  scale_shape_manual(values = rep(15, length(unique(summary_stats$sigmaA)))) +
+  geom_point(size = 1) +
+  geom_ribbon(
+    aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)),
+    alpha = 0.2,
+    color = NA
+  ) +
+  scale_color_viridis_d(
+    option = "B",
+    begin = 0.4,
+    end = 0.7,
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
+  scale_fill_viridis_d( # Add this to match fill with color
+    option = "B",
+    begin = 0.4,
+    end = 0.7,
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
   scale_x_continuous(
     breaks = log2(c(100, 1000, 10000, 100000)),
     labels = c(
@@ -189,7 +233,7 @@ p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = fac
   )
 
 
-ggsave(p_dens, filename = here("res", "pics", "density_analysis", "both", "log2_dens.pdf"))
+ggsave(p_dens, filename = here("res", "pics", "density_analysis", "py", "vir_log2_dens.pdf"))
 
 log2_p_dens <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
   geom_line(size = 1) +
@@ -228,8 +272,29 @@ ggsave(log2_p_dens, filename = here("res", "pics", "density_analysis", "py", "lo
 
 log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
   geom_line(size = 0.1) +
-  geom_point(aes(shape = factor(sigmaA)), size = 1.5, stroke = 0.8) +
-  geom_ribbon(aes(ymin = log2_ci_lower, ymax = log2_ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
+  geom_point(size = 1) +
+  geom_ribbon(
+    aes(ymin = log2_ci_lower, ymax = log2_ci_upper, fill = factor(sigmaA)),
+    alpha = 0.2,
+    color = NA
+  ) +
+  scale_color_viridis_d(
+    option = "B",
+    begin = 0.4,
+    end = 0.7,
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
+  scale_fill_viridis_d( # Add this to match fill with color
+    option = "B",
+    begin = 0.4,
+    end = 0.7,
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
+  scale_x_continuous(
+    breaks = pretty(log2(c(100, 1000, 10000, 100000)))
+  ) +
   geom_text(
     data = label_df,
     aes(label = label),
@@ -238,13 +303,9 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     size = 3,
     show.legend = FALSE
   ) +
-  scale_shape_manual(values = rep(15, length(unique(summary_stats$sigmaA)))) +
-  scale_x_continuous(
-    breaks = pretty(log2(c(100, 1000, 10000, 100000)))
-  ) +
   labs(
-    x = "n (log2 scale)",
-    y = "density (log2 scale)",
+    x = expression(log[2](n)),
+    y = expression(log[2](density)),
     color = expression(sigma),
     fill = expression(sigma),
     shape = expression(sigma)
@@ -256,7 +317,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
   )
 
 # Save the updated plot
-ggsave(log2_p_dens_slopes, filename = here("res", "pics", "density_analysis", "both", "loglog2_dens_slopes.pdf"))
+ggsave(log2_p_dens_slopes, filename = here("res", "pics", "density_analysis", "py", "loglog2_dens_slopes.pdf"))
 
 library(patchwork)
 
@@ -271,7 +332,7 @@ combined_plot <- (p_dens + log2_p_dens_slopes) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "both", "grid_dens.pdf"),
+  here("res", "pics", "density_analysis", "py", "grid_dens_vir.pdf"),
   combined_plot,
   width = 7, height = 4
 )

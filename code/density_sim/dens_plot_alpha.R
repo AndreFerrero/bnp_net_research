@@ -4,22 +4,22 @@ dens_plot <- function(alpha_dens) {
   # Ensure threshold is a factor (discrete)
   alpha_dens$threshold_f <- factor(alpha_dens$threshold, levels = sort(unique(alpha_dens$threshold)))
 
-  # Generate a visually progressive color palette (e.g., viridis)
-  num_thresholds <- length(levels(alpha_dens$threshold_f))
-  palette_colors <- viridis::viridis(num_thresholds)
-
   # Create 10^x expression labels for the legend
   threshold_labels <- parse(text = paste0("10^", log10(as.numeric(levels(alpha_dens$threshold_f)))))
 
   ggplot(alpha_dens, aes(
-    x = alpha, y = mean_density,
+    x = alpha,
+    y = mean_density,
     group = threshold_f,
     color = threshold_f
   )) +
     geom_line(size = 0.5, alpha = 0.6) +
     geom_point(size = 2, alpha = 1) +
-    scale_color_manual(
-      values = palette_colors,
+    scale_color_viridis_d(
+      option = "B",
+      begin = 0.2,
+      end = 0.8,
+      direction = -1,
       labels = threshold_labels,
       guide = guide_legend(nrow = 1)
     ) +
@@ -30,7 +30,7 @@ dens_plot <- function(alpha_dens) {
     ) +
     labs(
       x     = expression(alpha),
-      y     = expression(E * "[" * d(H[n]) * "]"),
+      y     = "Mean density",
       color = "Networks size"
     ) +
     theme_minimal() +
@@ -42,6 +42,7 @@ dens_plot <- function(alpha_dens) {
       legend.key.width   = unit(1.5, "lines")
     )
 }
+
 
 
 alpha_plot <- dens_plot(alpha_dens100)

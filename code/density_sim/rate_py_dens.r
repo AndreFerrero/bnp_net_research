@@ -153,8 +153,12 @@ ggsave(filename = here("res", "pics", "density_analysis", "rate", "slope_sigma.p
 
 ggplot(dens_summary, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
   geom_line(size = 0.3) +
-  geom_point(aes(shape = factor(sigmaA)), size = 1, stroke = 0.8) +
-  scale_shape_manual(values = 0:9) +
+  geom_point(size = 1) +
+  scale_color_viridis_d(
+    option = "B",
+    direction = -1,
+    guide = guide_legend(nrow = 1, override.aes = list(linetype = 1, shape = NA, fill = NA))
+  ) +
   scale_x_continuous(
     breaks = log2(c(2^4, 100, 1000, 10000, 100000)),
     labels = c(
@@ -182,8 +186,12 @@ ggsave(filename = here("res", "pics", "density_analysis", "py", "many_log2_dens.
 
 ggplot(dens_summary, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
   geom_line(size = 0.3) +
-  geom_point(aes(shape = factor(sigmaA)), size = 1, stroke = 0.8) +
-  scale_shape_manual(values = 0:9) +
+  geom_point(size = 1) +
+  scale_color_viridis_d(
+    option = "B",
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
 
   # X-axis: log2 of size with 10^j labels
   scale_x_continuous(
