@@ -316,7 +316,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     data = label_df,
     aes(label = label),
     hjust = -0.1,
-    vjust = -2.1,
+    vjust = -0.8,
     size = 3,
     show.legend = FALSE
   ) +
