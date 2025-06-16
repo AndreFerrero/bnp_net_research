@@ -126,7 +126,7 @@ write.csv(summary_stats, file.path(root_dir, "dens_summary_py_dp_extra.csv"), ro
 
 
 # PLOTTING ---------------------------------------------------------------
-summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_dp_and_py.csv"))
+summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_py_dp_extra.csv"))
 library(ggplot2)
 
 # Fit linear models and extract slopes per sigma
@@ -349,7 +349,7 @@ combined_plot <- (p_dens + log2_p_dens) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "asymm", "grid_dens_vir.pdf"),
+  here("res", "pics", "density_analysis", "both", "grid_dens_vir.pdf"),
   combined_plot,
   width = 7, height = 4
 )
@@ -364,7 +364,7 @@ combined_plot_slopes <- (p_dens + log2_p_dens_slopes) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "asymm", "slope_grid_dens_vir.pdf"),
+  here("res", "pics", "density_analysis", "both", "slope_grid_dens_vir.pdf"),
   combined_plot_slopes,
   width = 7, height = 4
 )

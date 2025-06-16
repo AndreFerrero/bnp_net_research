@@ -28,6 +28,10 @@ dens_plot <- function(alpha_dens) {
       labels = function(x) ifelse(abs(x - round(x)) < .Machine$double.eps^0.5, as.character(round(x)), as.character(x)),
       minor_breaks = NULL
     ) +
+    scale_y_continuous(
+      breaks = c(0, 0.2, 0.4, 0.6, 0.8),
+      limit = c(0, NA)
+    ) +
     labs(
       x     = expression(alpha),
       y     = expression(density),
