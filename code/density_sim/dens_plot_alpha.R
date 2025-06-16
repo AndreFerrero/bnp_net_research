@@ -30,7 +30,7 @@ dens_plot <- function(alpha_dens) {
     ) +
     labs(
       x     = expression(alpha),
-      y     = "Mean density",
+      y     = expression(density),
       color = "Networks size"
     ) +
     theme_minimal() +

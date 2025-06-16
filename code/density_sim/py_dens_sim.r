@@ -44,7 +44,7 @@ compute_density <- function(net) {
 
 # SIMULATION PARAMETERS --------------------------------------------------
 sizes <- 2^(4:17)
-n_rep <- 50
+n_rep <- 100
 alpha <- c(5, 5)
 sigma_list <- list(c(0, 0), c(0.25, 0.25), c(0.5, 0.5), c(0.75, 0.75))
 
@@ -70,11 +70,6 @@ for (s in sigma_list) {
   sigma_str <- paste0(sigmaA, "_", sigmaB)
 
   for (N in sizes) {
-    # prepare directories under root_dir
-    base_dir <- file.path(root_dir, paste0("sigma_", sigma_str), paste0("size_", N))
-    dir.create(file.path(base_dir, "networks"), recursive = TRUE, showWarnings = FALSE)
-    dir.create(file.path(base_dir, "densities"), recursive = TRUE, showWarnings = FALSE)
-
     # parallel over replicates
     results_N <- foreach(
       rep = seq_len(n_rep), .combine = rbind,
@@ -82,12 +77,7 @@ for (s in sigma_list) {
     ) %dopar% {
       net <- sample_net(N, alpha, c(sigmaA, sigmaB))
 
-      net_file <- file.path(base_dir, "networks", paste0("network_rep_", rep, ".rds"))
-      saveRDS(net, net_file)
-
       dens <- compute_density(net)
-      dens_file <- file.path(base_dir, "densities", paste0("density_rep_", rep, ".rds"))
-      saveRDS(dens, dens_file)
 
       data.frame(
         sigmaA  = sigmaA,
@@ -104,10 +94,12 @@ for (s in sigma_list) {
   }
 }
 close(pb)
+cat("\n")
 stopCluster(cl)
 
 # AGGREGATE STATISTICS ----------------------------------------------------
 results_df <- bind_rows(all_summaries)
+
 summary_stats <- results_df |>
   group_by(sigmaA, sigmaB, size) |>
   summarise(
@@ -126,16 +118,15 @@ summary_stats <- summary_stats |>
     log2_density = log2(mean_density),
     log2_ci_lower = log2(ci_lower),
     log2_ci_upper = log2(ci_upper),
-    sigma = paste0("sigma = ", sigmaA) # For grouping/plotting
+    sigma = paste0("sigma = ", sigmaB) # For grouping/plotting
   )
 
 # Save summary under root_dir
-saveRDS(summary_stats, file.path(root_dir, "density_summary.rds"))
-write.csv(summary_stats, file.path(root_dir, "density_summary.csv"), row.names = FALSE)
+write.csv(summary_stats, file.path(root_dir, "dens_summary_py_dp_extra.csv"), row.names = FALSE)
 
 
 # PLOTTING ---------------------------------------------------------------
-summary_stats <- read.csv(here("res", "density_PY", "new_sim", "density_summary.csv"))
+summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_dp_and_py.csv"))
 library(ggplot2)
 
 # Fit linear models and extract slopes per sigma
@@ -153,7 +144,7 @@ print(slopes_df)
 
 # Add slope labels to the data frame for annotation
 label_df <- summary_stats |>
-  group_by(sigmaA) |>
+  group_by(sigmaB) |>
   arrange(log2_size) |>
   mutate(mid_idx = ceiling(n() / 2)) |>
   slice(mid_idx) |>
@@ -188,11 +179,11 @@ label_df <- summary_stats |>
 #     panel.grid.minor = element_blank()
 # )
 
-p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
+p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaB))) +
   geom_line(size = 0.1) +
   geom_point(size = 1) +
   geom_ribbon(
-    aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)),
+    aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaB)),
     alpha = 0.2,
     color = NA
   ) +
@@ -219,6 +210,10 @@ p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = fac
       expression(10^5)
     )
   ) +
+  scale_y_continuous(
+    breaks = c(0, 0.1, 0.2, 0.3, 0.4),
+    limits = c(0, NA)
+  ) +
   labs(
     x = "n",
     y = "density",
@@ -235,27 +230,49 @@ p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = fac
 
 ggsave(p_dens, filename = here("res", "pics", "density_analysis", "py", "vir_log2_dens.pdf"))
 
-log2_p_dens <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
-  geom_line(size = 1) +
-  geom_point(aes(shape = factor(sigmaA)), size = 3, stroke = 0.8) +
-  geom_ribbon(aes(ymin = log2_ci_lower, ymax = log2_ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
-  scale_shape_manual(values = rep(15, length(unique(summary_stats$sigmaA)))) +
+log2_p_dens <- ggplot(
+  summary_stats,
+  aes(x = log2_size, y = log2_density, color = factor(sigmaB))
+) +
+  geom_line(size = 0.1) +
+  geom_point(size = 1) +
+  geom_ribbon(
+    aes(
+      ymin = log2_ci_lower,
+      ymax = log2_ci_upper,
+      fill = factor(sigmaB)
+    ),
+    alpha = 0.2,
+    color = NA
+  ) +
+  scale_color_viridis_d(
+    option = "B",
+    begin = 0.4,
+    end = 0.7,
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
+  scale_fill_viridis_d( # Add this to match fill with color
+    option = "B",
+    begin = 0.4,
+    end = 0.7,
+    direction = -1,
+    guide = guide_legend(nrow = 1)
+  ) +
 
   # X-axis: log2 of size with 10^j labels
   scale_x_continuous(
     breaks = log2(c(100, 1000, 10000, 100000)),
-    labels = c(expression(10^2), expression(10^3), expression(10^4), expression(10^5))
-  ) +
-
-  # Y-axis: log2 of density with parsed labels if you want similar scientific style
-  scale_y_continuous(
-    breaks = pretty(summary_stats$log2_density),
-    labels = function(x) parse(text = paste0("2^", x))
+    labels = c(
+      expression(10^2),
+      expression(10^3),
+      expression(10^4),
+      expression(10^5)
+    )
   ) +
   labs(
-    title = "Bipartite Network Density vs. Size",
-    x = "n", # Keep the label simple
-    y = "density", # Since log2 scale is encoded in ticks
+    x = expression(log[2](n)),
+    y = expression(log[2](density)),
     color = expression(sigma),
     fill = expression(sigma),
     shape = expression(sigma)
@@ -270,11 +287,11 @@ log2_p_dens <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color 
 # Save the updated plot
 ggsave(log2_p_dens, filename = here("res", "pics", "density_analysis", "py", "loglog2_dens.pdf"))
 
-log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaA))) +
+log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaB))) +
   geom_line(size = 0.1) +
   geom_point(size = 1) +
   geom_ribbon(
-    aes(ymin = log2_ci_lower, ymax = log2_ci_upper, fill = factor(sigmaA)),
+    aes(ymin = log2_ci_lower, ymax = log2_ci_upper, fill = factor(sigmaB)),
     alpha = 0.2,
     color = NA
   ) +
@@ -299,7 +316,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     data = label_df,
     aes(label = label),
     hjust = -0.1,
-    vjust = -0.9,
+    vjust = -2.1,
     size = 3,
     show.legend = FALSE
   ) +
@@ -322,7 +339,7 @@ ggsave(log2_p_dens_slopes, filename = here("res", "pics", "density_analysis", "p
 library(patchwork)
 
 # Combine with shared legend and one title
-combined_plot <- (p_dens + log2_p_dens_slopes) +
+combined_plot <- (p_dens + log2_p_dens) +
   plot_layout(guides = "collect") &
   theme(
     legend.position = "top",
@@ -332,7 +349,22 @@ combined_plot <- (p_dens + log2_p_dens_slopes) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "py", "grid_dens_vir.pdf"),
+  here("res", "pics", "density_analysis", "asymm", "grid_dens_vir.pdf"),
   combined_plot,
+  width = 7, height = 4
+)
+
+combined_plot_slopes <- (p_dens + log2_p_dens_slopes) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "top",
+    legend.justification = "center",
+    legend.direction = "horizontal",
+    legend.box.just = "center"
+  )
+
+ggsave(
+  here("res", "pics", "density_analysis", "asymm", "slope_grid_dens_vir.pdf"),
+  combined_plot_slopes,
   width = 7, height = 4
 )
