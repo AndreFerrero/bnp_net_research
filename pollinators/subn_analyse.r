@@ -6,7 +6,7 @@ library(tidyverse)
 library(posterior)
 
 # Set up directories
-poll_dir <- here("pollinators/mpl040")
+poll_dir <- here("pollinators/mpl025")
 wo_repl_dir <- here(poll_dir, "wo_repl")
 plots_dir <- here(wo_repl_dir, "unif_plots")
 fits_dir <- here(wo_repl_dir, "unif_fit")
@@ -14,7 +14,7 @@ fits_dir <- here(wo_repl_dir, "unif_fit")
 dir.create(plots_dir, showWarnings = FALSE)
 
 # Load full data
-raw_mat <- read.csv(here(poll_dir, "M_PL_040.csv"),
+raw_mat <- read.csv(here(poll_dir, "M_PL_025.csv"),
   check.names = FALSE, row.names = 1
 )
 
@@ -89,7 +89,7 @@ for (p in percentages) {
     geom_vline(xintercept = ss$d_obs, color = "red", size = 1) +
     labs(
       title = paste0(pct_label, "% PPC density"),
-      x = expression(d == e / (K[D] * K[G]))
+      x = expression(d == e / (K[A] * K[B]))
     ) +
     theme_minimal()
   ggsave(here(plots_dir, paste0("ppc_density_", pct_label, "pct.pdf")), ppc_hist)

@@ -6,7 +6,7 @@ library(rstan)
 
 poll_dir <- here("poll")
 
-data <- read.csv(here(poll_dir, "M_PL_040.csv"),
+data <- read.csv(here(poll_dir, "M_PL_025.csv"),
   check.names = FALSE, row.names = 1
 )
 
