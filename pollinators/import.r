@@ -2,10 +2,10 @@
 library(tidyverse)
 library(here)
 
-poll_dir <- here("pollinators/mpl06005")
+poll_dir <- here("pollinators/mpl040")
 # Read the CSV file
 # (Change the file path to where you've saved your file)
-data <- read.csv(here(poll_dir, "M_PL_060_05.csv"),
+data <- read.csv(here(poll_dir, "M_PL_040.csv"),
   check.names = FALSE, row.names = 1
 )
 

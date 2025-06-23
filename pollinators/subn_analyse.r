@@ -6,7 +6,7 @@ library(tidyverse)
 library(posterior)
 
 # Set up directories
-poll_dir <- here("pollinators/mpl06005")
+poll_dir <- here("pollinators/mpl040")
 wo_repl_dir <- here(poll_dir, "wo_repl")
 plots_dir <- here(wo_repl_dir, "unif_plots")
 fits_dir <- here(wo_repl_dir, "unif_fit")
@@ -14,7 +14,7 @@ fits_dir <- here(wo_repl_dir, "unif_fit")
 dir.create(plots_dir, showWarnings = FALSE)
 
 # Load full data
-raw_mat <- read.csv(here(poll_dir, "M_PL_060_05.csv"),
+raw_mat <- read.csv(here(poll_dir, "M_PL_040.csv"),
   check.names = FALSE, row.names = 1
 )
 
