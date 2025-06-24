@@ -6,7 +6,7 @@ library(tidyverse)
 library(posterior)
 
 # Set up directories
-poll_dir <- here("pollinators/mpl019")
+poll_dir <- here("pollinators/mpl025")
 wo_repl_dir <- here(poll_dir, "wo_repl")
 plots_dir <- here(wo_repl_dir, "unif_plots")
 fits_dir <- here(wo_repl_dir, "unif_fit")
@@ -14,7 +14,7 @@ fits_dir <- here(wo_repl_dir, "unif_fit")
 dir.create(plots_dir, showWarnings = FALSE)
 
 # Load full data
-raw_mat <- read.csv(here(poll_dir, "M_PL_019.csv"),
+raw_mat <- read.csv(here(poll_dir, "M_PL_025.csv"),
   check.names = FALSE, row.names = 1
 )
 
@@ -216,8 +216,7 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
   ) +
   labs(
     x = "% data",
-    y = "log10 Bayes Factor",
-    title = expression("Bayes factor for " ~ sigma[A] < delta)
+    y = expression(log[10](BF))
   ) +
   scale_x_continuous(
     breaks = unique(bf_all_deltas$pct),
