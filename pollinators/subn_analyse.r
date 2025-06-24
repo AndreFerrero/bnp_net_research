@@ -6,7 +6,7 @@ library(tidyverse)
 library(posterior)
 
 # Set up directories
-poll_dir <- here("pollinators/mpl025")
+poll_dir <- here("pollinators/mpl019")
 wo_repl_dir <- here(poll_dir, "wo_repl")
 plots_dir <- here(wo_repl_dir, "unif_plots")
 fits_dir <- here(wo_repl_dir, "unif_fit")
@@ -14,7 +14,7 @@ fits_dir <- here(wo_repl_dir, "unif_fit")
 dir.create(plots_dir, showWarnings = FALSE)
 
 # Load full data
-raw_mat <- read.csv(here(poll_dir, "M_PL_025.csv"),
+raw_mat <- read.csv(here(poll_dir, "M_PL_019.csv"),
   check.names = FALSE, row.names = 1
 )
 
@@ -225,7 +225,7 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
   ) +
   scale_y_continuous(
     breaks = y_ticks,
-    limits = c(0, 2),
+    limits = c(0, 2.5),
     expand = c(0.01, 0)
   ) +
   theme_minimal() +
