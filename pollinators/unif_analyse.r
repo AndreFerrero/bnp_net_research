@@ -35,6 +35,25 @@ poll <- edges |>
 (d_obs <- nrow(edges) / (nrow(plant) * nrow(poll)))
 
 
+(total_weight <- sum(edges$weight))
+(binary_weight <- nrow(edges))
+
+
+# compare with theoretical network
+source("code/funs/py_sample.R")
+source("code/funs/sample_net.R")
+
+# True parameters
+alpha_true <- c(5, 5)
+sigma_true <- c(0, 0.1)
+
+tnet <- sample_net(total_weight, alpha_true, sigma_true)
+
+nrow(unique(tnet$edges))
+nrow(tnet$edges) == total_weight
+
+nrow(unique(tnet$edges)) / (tnet$xA$K * tnet$xB$K)
+
 # ESTIMATION
 
 # options(
