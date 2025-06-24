@@ -102,6 +102,6 @@ ggplot(data.frame(density = d_ppc), aes(x = density)) +
 
 ggsave(
   filename = here(poll_dir, "wo_repl", "unif_plots", "full_ppc.pdf"),
-  width = 5,
+  width = 7,
   height = 4
 )
