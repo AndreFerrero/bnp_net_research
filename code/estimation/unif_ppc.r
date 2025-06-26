@@ -73,8 +73,15 @@ check_hmc_diagnostics(unif_ppc_fit)
 unif_summary <- summary(unif_ppc_fit, probs = c(0.025, 0.5, 0.975))$summary
 print(round(unif_summary, digits = 3))
 
+param_labels <- c(
+  alpha_A = "alpha[A]",
+  alpha_B = "alpha[B]",
+  sigma_A = "sigma[A]",
+  sigma_B = "sigma[B]"
+)
+
 # ACF plot
-color_scheme_set("pink")
+color_scheme_set("red")
 (acf_plot <- mcmc_acf_bar(unif_ppc_fit,
   pars = names(param_labels),
   facet_args = list(
@@ -97,21 +104,9 @@ ggsave(
   height = 4
 )
 
-library(viridisLite)
-
-custom_colors <- viridis(n = 6, option = "B", end = 0.85, direction = -1)
-custom_colors <- substr(custom_colors, 1, 7)
-color_scheme_set(custom_colors)
-
-param_labels <- c(
-  alpha_A = "alpha[A]",
-  alpha_B = "alpha[B]",
-  sigma_A = "sigma[A]",
-  sigma_B = "sigma[B]"
-)
-
+color_scheme_set("red")
 # Trace plot
-trace_plot <- mcmc_trace(unif_ppc_fit,
+(trace_plot <- mcmc_trace(unif_ppc_fit,
   pars = names(param_labels),
   facet_args = list(
     nrow = 2,
@@ -122,6 +117,7 @@ trace_plot <- mcmc_trace(unif_ppc_fit,
   )
 ) +
   theme(legend.position = "none")
+)
 
 ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_trace.pdf"),
@@ -133,7 +129,8 @@ ggsave(
 
 
 # Posterior densities
-dens_plot <- mcmc_dens_overlay(unif_ppc_fit,
+color_scheme_set("red")
+(dens_plot <- mcmc_dens_overlay(unif_ppc_fit,
   pars = names(param_labels),
   facet_args = list(
     nrow = 2,
@@ -144,6 +141,7 @@ dens_plot <- mcmc_dens_overlay(unif_ppc_fit,
   )
 ) +
   theme(legend.position = "none")
+)
 
 ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_post.pdf"),
@@ -165,16 +163,26 @@ d_quantile <- quantile(unif_d_ppc, probs = c(0.025, 0.5, 0.975))
 print(d_quantile)
 cat("Observed density:", round(d_obs, 4), "\n")
 
+color_scheme_get("red")
+
 # PPC histogram
-ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
-  geom_histogram(bins = 30, color = "black", fill = "lightblue") +
-  geom_vline(xintercept = d_obs, color = "red", size = 1) +
+(ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
+  geom_histogram(bins = 30, color = "black", fill = "#DCBCBC") +
+  annotate(
+    "segment",
+    x = d_obs, xend = d_obs,
+    y = 0, yend = Inf,
+    color = "red",
+    size = 1,
+    linetype = "dashed"
+  ) +
   labs(
     x = NULL,
     y = NULL
   ) +
   theme_minimal() +
   theme(axis.text.y = element_blank())
+)
 
 ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_dens.pdf"),
