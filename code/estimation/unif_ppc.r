@@ -6,12 +6,17 @@ library(ggplot2)
 library(tidyverse)
 
 # pics folder
-unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_07_unif_ppc")
+unif_0_02_pics_folder <- here("res", "pics", "estimation", "0_02_unif_ppc")
+unif_0_07_pics_folder <- here("res", "pics", "estimation", "0_07_unif_ppc")
 
 # est folder
 est_folder <- here("code", "estimation")
 
+load(here(est_folder, "0_02_unif_ppc_fit.Rdata"))
+unif_0_02_ppc_fit <- unif_ppc_fit
 load(here(est_folder, "0_07_unif_ppc_fit.Rdata"))
+unif_0_07_ppc_fit <- unif_ppc_fit
+rm(unif_ppc_fit)
 
 # Load helper functions
 source("code/funs/py_sample.R")
@@ -27,166 +32,180 @@ set.seed(42)
 
 # True parameters
 alpha_true <- c(5, 5)
-sigma_true <- c(0, 0.7)
+sigma_true_0_02 <- c(0, 0.2)
+sigma_true_0_07 <- c(0, 0.7)
 
 # Simulate network data
-net <- sample_net(1e4,
+net_0_02 <- sample_net(1e4,
   alpha = alpha_true,
-  sigma = sigma_true
+  sigma = sigma_true_0_02
+)
+net_0_07 <- sample_net(1e4,
+  alpha = alpha_true,
+  sigma = sigma_true_0_07
 )
 
 # Compile Stan model
-unif_ppc_path <- here(stan_folder, "unif_ppc.stan")
-unif_ppc_mod <- stan_model(file = unif_ppc_path)
+# unif_ppc_path <- here(stan_folder, "unif_ppc.stan")
+# unif_ppc_mod <- stan_model(file = unif_ppc_path)
 
-# Data for Stan
-unif_ppc_data <- list(
-  K_A = net$xA$K,
-  K_B = net$xB$K,
-  n_A = net$xA$active_counts,
-  n_B = net$xB$active_counts,
-  prior_alpha_A = c(3, 0.4),
-  prior_alpha_B = c(3, 0.4),
-  prior_sigma_A = c(1, 1),
-  prior_sigma_B = c(1, 1),
-  e_obs = nrow(net$edges)
-)
+# # Data for Stan
+# unif_ppc_data <- list(
+#   K_A = net$xA$K,
+#   K_B = net$xB$K,
+#   n_A = net$xA$active_counts,
+#   n_B = net$xB$active_counts,
+#   prior_alpha_A = c(3, 0.4),
+#   prior_alpha_B = c(3, 0.4),
+#   prior_sigma_A = c(1, 1),
+#   prior_sigma_B = c(1, 1),
+#   e_obs = nrow(net$edges)
+# )
 
-# Fit the model
-unif_ppc_fit <- sampling(
-  object = unif_ppc_mod,
-  data = unif_ppc_data,
-  chains = 4,
-  iter = 4000,
-  warmup = 1000,
-  seed = 42,
-  thin = 2,
-  control = list(adapt_delta = 0.95)
-)
+# # Fit the model
+# unif_ppc_fit <- sampling(
+#   object = unif_ppc_mod,
+#   data = unif_ppc_data,
+#   chains = 4,
+#   iter = 4000,
+#   warmup = 1000,
+#   seed = 42,
+#   thin = 2,
+#   control = list(adapt_delta = 0.95)
+# )
 
 # Save the fit
 # save(unif_ppc_fit, file = here(est_folder, "0_07_unif_ppc_fit.Rdata"))
 
-check_hmc_diagnostics(unif_ppc_fit)
+# check_hmc_diagnostics(unif_ppc_fit)
 
 # Posterior summary
 unif_summary <- summary(unif_ppc_fit, probs = c(0.025, 0.5, 0.975))$summary
 print(round(unif_summary, digits = 3))
 
-param_labels <- c(
-  alpha_A = "alpha[A]",
-  alpha_B = "alpha[B]",
-  sigma_A = "sigma[A]",
-  sigma_B = "sigma[B]"
-)
+bayes_plots <- function(fit_object, color_set, net, pics_folder, save = FALSE) {
+  color_scheme_set(color_set)
 
-# ACF plot
-color_scheme_set("blue")
-(acf_plot <- mcmc_acf_bar(unif_ppc_fit,
-  pars = names(param_labels),
-  facet_args = list(
-    labeller = labeller(
-      .variables = NULL,
-      .default = label_parsed,
-      .cols = param_labels
-    )
+  if (color_set == "blue") {
+    hist_color <- "#b3cde0"
+  } else {
+    hist_color <- "#DCBCBC"
+  }
+
+  param_labels <- c(
+    alpha_A = "alpha[A]",
+    alpha_B = "alpha[B]",
+    sigma_A = "sigma[A]",
+    sigma_B = "sigma[B]"
   )
-) +
-  theme(legend.position = "none") +
-  hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
-  scale_y_continuous(breaks = c(0.2)))
 
-ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_acf.pdf"),
-  plot = acf_plot,
-  device = "pdf",
-  width = 6,
-  height = 4
-)
-
-# Trace plot
-(trace_plot <- mcmc_trace(unif_ppc_fit,
-  pars = names(param_labels),
-  facet_args = list(
-    nrow = 2,
-    labeller = labeller(
-      .variables = NULL, .default = label_parsed,
-      .cols = param_labels
+  # ACF plot
+  (acf_plot <- mcmc_acf_bar(fit_object,
+    pars = names(param_labels),
+    facet_args = list(
+      labeller = labeller(
+        .variables = NULL,
+        .default = label_parsed,
+        .cols = param_labels
+      )
     )
-  )
-) +
-  theme(legend.position = "none")
-)
-
-ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_trace.pdf"),
-  plot = trace_plot,
-  device = "pdf",
-  width = 6,
-  height = 4
-)
-
-
-# Posterior densities
-(dens_plot <- mcmc_dens_overlay(unif_ppc_fit,
-  pars = names(param_labels),
-  facet_args = list(
-    nrow = 2,
-    labeller = labeller(
-      .variables = NULL, .default = label_parsed,
-      .cols = param_labels
-    )
-  )
-) +
-  theme(legend.position = "none")
-)
-
-ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_post.pdf"),
-  plot = dens_plot,
-  width = 4,
-  height = 3
-)
-
-# PPC observed network density
-
-# Convert to posterior draws
-unif_ppc_draws <- as_draws_df(unif_ppc_fit)
-
-d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
-unif_d_ppc <- unif_ppc_draws$density_ppc
-
-# Summary of PPC
-
-color_scheme_get("blue")
-red_hist <- "#DCBCBC"
-blue_hist <- "#b3cde0"
-
-# PPC histogram
-(ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
-  geom_histogram(bins = 30, color = "black", fill = blue_hist) +
-  annotate(
-    "segment",
-    x = d_obs, xend = d_obs,
-    y = 0, yend = Inf,
-    color = "blue",
-    size = 1,
-    linetype = "dashed"
   ) +
-  labs(
-    x = NULL,
-    y = NULL
-  ) +
-  theme_minimal() +
-  theme(axis.text.y = element_blank())
-)
+    theme(legend.position = "none") +
+    hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
+    scale_y_continuous(breaks = c(0.2)))
 
-ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_dens.pdf"),
-  plot = ppc_plot,
-  width = 4,
-  height = 3
-)
+  # Trace plot
+  (trace_plot <- mcmc_trace(fit_object,
+    pars = names(param_labels),
+    facet_args = list(
+      nrow = 2,
+      labeller = labeller(
+        .variables = NULL, .default = label_parsed,
+        .cols = param_labels
+      )
+    )
+  ) +
+    theme(legend.position = "none")
+  )
+
+  # Posterior densities
+  (dens_plot <- mcmc_dens_overlay(fit_object,
+    pars = names(param_labels),
+    facet_args = list(
+      nrow = 2,
+      labeller = labeller(
+        .variables = NULL, .default = label_parsed,
+        .cols = param_labels
+      )
+    )
+  ) +
+    theme(legend.position = "none")
+  )
+
+  # PPC observed network density
+
+  # Convert to posterior draws
+  unif_ppc_draws <- as_draws_df(fit_object)
+
+  d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
+  unif_d_ppc <- unif_ppc_draws$density_ppc
+
+  # PPC histogram
+  (ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
+    geom_histogram(bins = 30, color = "black", fill = hist_color) +
+    annotate(
+      "segment",
+      x = d_obs, xend = d_obs,
+      y = 0, yend = Inf,
+      color = color_set,
+      size = 1,
+      linetype = "dashed"
+    ) +
+    labs(
+      x = NULL,
+      y = NULL
+    ) +
+    theme_minimal() +
+    theme(axis.text.y = element_blank())
+  )
+
+  if (save) {
+    ggsave(
+      filename = here(pics_folder, "unif_ppc_acf.pdf"),
+      plot = acf_plot,
+      device = "pdf",
+      width = 6,
+      height = 4
+    )
+
+    ggsave(
+      filename = here(pics_folder, "unif_ppc_trace.pdf"),
+      plot = trace_plot,
+      device = "pdf",
+      width = 6,
+      height = 4
+    )
+
+    ggsave(
+      filename = here(pics_folder, "unif_ppc_post.pdf"),
+      plot = dens_plot,
+      width = 4,
+      height = 3
+    )
+
+    ggsave(
+      filename = here(pics_folder, "unif_ppc_dens.pdf"),
+      plot = ppc_plot,
+      width = 4,
+      height = 3
+    )
+  }
+}
+
+bayes_plots(unif_0_02_ppc_fit, "red", net_0_02, unif_0_02_pics_folder, save = T)
+bayes_plots(unif_0_07_ppc_fit, "blue", net_0_07, unif_0_07_pics_folder, save = T)
+
+
 
 # Bayes Factor
 delta <- 0.05
