@@ -3,9 +3,15 @@ library(here)
 library(posterior)
 library(bayesplot)
 library(ggplot2)
+library(tidyverse)
 
 # pics folder
-unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_07_unif_ppc")
+unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_02_unif_ppc")
+
+# est folder
+est_folder <- here("code", "estimation")
+
+load(here(est_folder, "0_02_unif_ppc_fit.Rdata"))
 
 # Load helper functions
 source("code/funs/py_sample.R")
@@ -21,7 +27,7 @@ set.seed(42)
 
 # True parameters
 alpha_true <- c(5, 5)
-sigma_true <- c(0, 0.7)
+sigma_true <- c(0, 0.2)
 
 # Simulate network data
 net <- sample_net(1e4,
@@ -59,7 +65,7 @@ unif_ppc_fit <- sampling(
 )
 
 # Save the fit
-save(unif_ppc_fit, file = here(est_folder, "0_07_unif_ppc_fit.Rdata"))
+# save(unif_ppc_fit, file = here(est_folder, "0_02_unif_ppc_fit.Rdata"))
 
 check_hmc_diagnostics(unif_ppc_fit)
 
@@ -67,20 +73,21 @@ check_hmc_diagnostics(unif_ppc_fit)
 unif_summary <- summary(unif_ppc_fit, probs = c(0.025, 0.5, 0.975))$summary
 print(round(unif_summary, digits = 3))
 
-# Trace plot
-trace_plot <- mcmc_trace(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B")) +
-  theme(legend.position = "top")
-
-ggsave(
-  filename = here(unif_ppc_pics_folder, "unif_ppc_trace.pdf"),
-  plot = trace_plot,
-  device = "pdf",
-  width = 6,
-  height = 4
-)
-
 # ACF plot
-acf_plot <- mcmc_acf_bar(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B"))
+color_scheme_set("pink")
+(acf_plot <- mcmc_acf_bar(unif_ppc_fit,
+  pars = names(param_labels),
+  facet_args = list(
+    labeller = labeller(
+      .variables = NULL,
+      .default = label_parsed,
+      .cols = param_labels
+    )
+  )
+) +
+  theme(legend.position = "none") +
+  hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
+  scale_y_continuous(breaks = c(0.2)))
 
 ggsave(
   filename = here(unif_ppc_pics_folder, "unif_ppc_acf.pdf"),
@@ -90,8 +97,52 @@ ggsave(
   height = 4
 )
 
+library(viridisLite)
+
+custom_colors <- viridis(n = 6, option = "B", end = 0.85, direction = -1)
+custom_colors <- substr(custom_colors, 1, 7)
+color_scheme_set(custom_colors)
+
+param_labels <- c(
+  alpha_A = "alpha[A]",
+  alpha_B = "alpha[B]",
+  sigma_A = "sigma[A]",
+  sigma_B = "sigma[B]"
+)
+
+# Trace plot
+trace_plot <- mcmc_trace(unif_ppc_fit,
+  pars = names(param_labels),
+  facet_args = list(
+    nrow = 2,
+    labeller = labeller(
+      .variables = NULL, .default = label_parsed,
+      .cols = param_labels
+    )
+  )
+) +
+  theme(legend.position = "none")
+
+ggsave(
+  filename = here(unif_ppc_pics_folder, "unif_ppc_trace.pdf"),
+  plot = trace_plot,
+  device = "pdf",
+  width = 6,
+  height = 4
+)
+
+
 # Posterior densities
-dens_plot <- mcmc_dens_overlay(unif_ppc_fit, pars = c("alpha_A", "alpha_B", "sigma_A", "sigma_B")) +
+dens_plot <- mcmc_dens_overlay(unif_ppc_fit,
+  pars = names(param_labels),
+  facet_args = list(
+    nrow = 2,
+    labeller = labeller(
+      .variables = NULL, .default = label_parsed,
+      .cols = param_labels
+    )
+  )
+) +
   theme(legend.position = "none")
 
 ggsave(
