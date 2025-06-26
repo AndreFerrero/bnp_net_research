@@ -126,7 +126,7 @@ write.csv(summary_stats, file.path(root_dir, "dens_summary_py_dp_extra.csv"), ro
 
 
 # PLOTTING ---------------------------------------------------------------
-summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_py_dp_extra.csv"))
+summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_both_py_dp.csv"))
 library(ggplot2)
 
 # Fit linear models and extract slopes per sigma
@@ -150,34 +150,6 @@ label_df <- summary_stats |>
   slice(mid_idx) |>
   left_join(slopes_df, by = c("sigmaA", "sigmaB")) |>
   mutate(label = paste0("slope = ", round(slope, 2)))
-
-
-# p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaA))) +
-#   geom_line(size = 0.1) +
-#   geom_point(size = 1) +
-#   geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper, fill = factor(sigmaA)), alpha = 0.2, color = NA) +
-#   scale_shape_manual(values = rep(15, length(unique(summary_stats$sigmaA)))) +
-#   scale_x_continuous(
-#     breaks = log2(c(100, 1000, 10000, 100000)),
-#     labels = c(
-#       expression(10^2),
-#       expression(10^3),
-#       expression(10^4),
-#       expression(10^5)
-#     )
-#   ) +
-#   labs(
-#     x = "n",
-#     y = "density",
-#     color = expression(sigma),
-#     fill = expression(sigma),
-#     shape = expression(sigma)
-#   ) +
-#   theme_minimal() +
-#   theme(
-#     legend.position = "bottom",
-#     panel.grid.minor = element_blank()
-# )
 
 p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = factor(sigmaB))) +
   geom_line(size = 0.1) +

@@ -150,24 +150,32 @@ bayes_plots <- function(fit_object, color_set, net, pics_folder, save = FALSE) {
   d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
   unif_d_ppc <- unif_ppc_draws$density_ppc
 
-  # PPC histogram
-  (ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
-    geom_histogram(bins = 30, color = "black", fill = hist_color) +
+  hist_data <- data.frame(density = unif_d_ppc) %>%
+    mutate(bin = cut(density, breaks = 30)) %>%
+    group_by(bin) %>%
+    summarise(
+      count = n(),
+      x = mean(range(density[bin == bin[1]])) # bin center
+    ) %>%
+    mutate(
+      color = ifelse(x >= d_obs, hist_color, "grey89") # conditional color
+    )
+
+  # Build the plot
+  ppc_plot <- ggplot(hist_data, aes(x = x, y = count, fill = color)) +
+    geom_col(color = "grey22", width = diff(range(unif_d_ppc)) / 30) +
+    scale_fill_identity() + # use actual hex values from 'fill'
     annotate(
       "segment",
       x = d_obs, xend = d_obs,
       y = 0, yend = Inf,
       color = color_set,
-      size = 1,
+      size = 0.5,
       linetype = "dashed"
     ) +
-    labs(
-      x = NULL,
-      y = NULL
-    ) +
+    labs(x = NULL, y = NULL) +
     theme_minimal() +
     theme(axis.text.y = element_blank())
-  )
 
   if (save) {
     ggsave(

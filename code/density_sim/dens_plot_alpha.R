@@ -100,7 +100,10 @@ log_alpha_plot <- ggplot(alpha_dens100, aes(x = alpha, y = mean_density, color =
   ) +
 
   # A good color scheme for sequential data
-  scale_color_viridis_d(option = "plasma", end = 0.9) +
+  scale_color_viridis_d(
+    option = "plasma", end = 0.9,
+    direction = -1
+  ) +
 
   # Final labels and theme
   labs(
