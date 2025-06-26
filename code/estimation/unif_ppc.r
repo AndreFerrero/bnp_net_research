@@ -6,12 +6,12 @@ library(ggplot2)
 library(tidyverse)
 
 # pics folder
-unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_02_unif_ppc")
+unif_ppc_pics_folder <- here("res", "pics", "estimation", "0_07_unif_ppc")
 
 # est folder
 est_folder <- here("code", "estimation")
 
-load(here(est_folder, "0_02_unif_ppc_fit.Rdata"))
+load(here(est_folder, "0_07_unif_ppc_fit.Rdata"))
 
 # Load helper functions
 source("code/funs/py_sample.R")
@@ -27,7 +27,7 @@ set.seed(42)
 
 # True parameters
 alpha_true <- c(5, 5)
-sigma_true <- c(0, 0.2)
+sigma_true <- c(0, 0.7)
 
 # Simulate network data
 net <- sample_net(1e4,
@@ -65,7 +65,7 @@ unif_ppc_fit <- sampling(
 )
 
 # Save the fit
-# save(unif_ppc_fit, file = here(est_folder, "0_02_unif_ppc_fit.Rdata"))
+# save(unif_ppc_fit, file = here(est_folder, "0_07_unif_ppc_fit.Rdata"))
 
 check_hmc_diagnostics(unif_ppc_fit)
 
@@ -81,7 +81,7 @@ param_labels <- c(
 )
 
 # ACF plot
-color_scheme_set("red")
+color_scheme_set("blue")
 (acf_plot <- mcmc_acf_bar(unif_ppc_fit,
   pars = names(param_labels),
   facet_args = list(
@@ -104,7 +104,6 @@ ggsave(
   height = 4
 )
 
-color_scheme_set("red")
 # Trace plot
 (trace_plot <- mcmc_trace(unif_ppc_fit,
   pars = names(param_labels),
@@ -129,7 +128,6 @@ ggsave(
 
 
 # Posterior densities
-color_scheme_set("red")
 (dens_plot <- mcmc_dens_overlay(unif_ppc_fit,
   pars = names(param_labels),
   facet_args = list(
@@ -159,20 +157,19 @@ d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
 unif_d_ppc <- unif_ppc_draws$density_ppc
 
 # Summary of PPC
-d_quantile <- quantile(unif_d_ppc, probs = c(0.025, 0.5, 0.975))
-print(d_quantile)
-cat("Observed density:", round(d_obs, 4), "\n")
 
-color_scheme_get("red")
+color_scheme_get("blue")
+red_hist <- "#DCBCBC"
+blue_hist <- "#b3cde0"
 
 # PPC histogram
 (ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
-  geom_histogram(bins = 30, color = "black", fill = "#DCBCBC") +
+  geom_histogram(bins = 30, color = "black", fill = blue_hist) +
   annotate(
     "segment",
     x = d_obs, xend = d_obs,
     y = 0, yend = Inf,
-    color = "red",
+    color = "blue",
     size = 1,
     linetype = "dashed"
   ) +
