@@ -1,5 +1,10 @@
 library(ggplot2)
+library(ggrepel)
+library(here)
+library(tidyverse)
+
 load(here("res", "sims", "alpha", "100alpha_density_results.Rdata"))
+
 dens_plot <- function(alpha_dens) {
   # Ensure threshold is a factor (discrete)
   alpha_dens$threshold_f <- factor(alpha_dens$threshold, levels = sort(unique(alpha_dens$threshold)))
@@ -47,8 +52,6 @@ dens_plot <- function(alpha_dens) {
     )
 }
 
-
-
 alpha_plot <- dens_plot(alpha_dens100)
 
 ggsave(
@@ -75,7 +78,7 @@ label_data <- alpha_dens100 %>%
 
 # Now build the plot
 log_alpha_plot <- ggplot(alpha_dens100, aes(x = alpha, y = mean_density, color = factor(threshold))) +
-  geom_line(aes(group = threshold), linetype = "dashed", linewidth = 0.5) +
+  geom_line(aes(group = threshold), alpha = 0.4, linewidth = 0.5) +
   geom_point(size = 2.5) +
 
   # --- THE MODIFIED PART ---
@@ -108,7 +111,7 @@ log_alpha_plot <- ggplot(alpha_dens100, aes(x = alpha, y = mean_density, color =
   # Final labels and theme
   labs(
     x = expression(alpha),
-    y = "Density"
+    y = "density"
   ) +
   theme_minimal(base_size = 14) +
   theme(

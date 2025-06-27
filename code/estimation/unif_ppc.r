@@ -144,38 +144,68 @@ bayes_plots <- function(fit_object, color_set, net, pics_folder, save = FALSE) {
 
   # PPC observed network density
 
-  # Convert to posterior draws
-  unif_ppc_draws <- as_draws_df(fit_object)
+  current_colors <- color_scheme_get()
 
+  # 2. Assign the specific colors we want from that list
+  main_color <- current_colors$light
+  highlight_color <- current_colors$dark
+
+  # 3. Get the data needed for the plot
+  unif_ppc_draws <- as_draws_df(fit_object)
   d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
   unif_d_ppc <- unif_ppc_draws$density_ppc
 
-  hist_data <- data.frame(density = unif_d_ppc) %>%
-    mutate(bin = cut(density, breaks = 30)) %>%
-    group_by(bin) %>%
-    summarise(
-      count = n(),
-      x = mean(range(density[bin == bin[1]])) # bin center
-    ) %>%
-    mutate(
-      color = ifelse(x >= d_obs, hist_color, "grey89") # conditional color
-    )
+  # --- Step 1 & 2: Calculate line position (same as before) ---
+  prelim_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
+    geom_histogram(bins = 30)
+  plot_data <- ggplot_build(prelim_plot)
+  bin_data <- plot_data$data[[1]]
+  target_bin <- bin_data %>%
+    filter(d_obs >= xmin & d_obs <= xmax)
+  line_position <- target_bin$xmin
 
-  # Build the plot
-  ppc_plot <- ggplot(hist_data, aes(x = x, y = count, fill = color)) +
-    geom_col(color = "grey22", width = diff(range(unif_d_ppc)) / 30) +
-    scale_fill_identity() + # use actual hex values from 'fill'
-    annotate(
-      "segment",
-      x = d_obs, xend = d_obs,
-      y = 0, yend = Inf,
-      color = color_set,
-      size = 0.5,
-      linetype = "dashed"
+  # --- Step 3: Build the final plot with the corrected style ---
+  ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
+    geom_histogram(
+      aes(fill = after_stat(xmin) >= line_position),
+      bins = 30,
+      color = "white",
+      linewidth = 0.2
     ) +
-    labs(x = NULL, y = NULL) +
-    theme_minimal() +
-    theme(axis.text.y = element_blank())
+    scale_fill_manual(
+      values = c("FALSE" = main_color, "TRUE" = highlight_color)
+    ) +
+    annotate( # replaces geom_vline()
+      "segment",
+      x = line_position, xend = line_position,
+      y = 0, yend = Inf,
+      color = "black",
+      linewidth = 1.1
+    ) +
+    coord_cartesian(clip = "on") +
+    annotate(
+      "text",
+      x = line_position,
+      y = Inf,
+      label = paste("Observed:", round(d_obs, 3)),
+      vjust = 2,
+      color = "black",
+      hjust = -0.1,
+      fontface = "plain" # Kept the plain font as requested
+    ) +
+    labs(
+      x = "Simulated Density",
+      y = "Frequency"
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      legend.position = "none",
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      axis.title = element_text(face = "plain"), # Kept the plain font
+      axis.text = element_text(size = 10),
+      plot.margin = margin(t = 5, r = 5, b = 5, l = 5)
+    )
 
   if (save) {
     ggsave(
