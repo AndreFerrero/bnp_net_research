@@ -240,8 +240,151 @@ bayes_plots <- function(fit_object, color_set, net, pics_folder, save = FALSE) {
   }
 }
 
-bayes_plots(unif_0_02_ppc_fit, "red", net_0_02, unif_0_02_pics_folder, save = T)
-bayes_plots(unif_0_07_ppc_fit, "blue", net_0_07, unif_0_07_pics_folder, save = T)
+
+# --- The Updated Function ---
+bayes_plots <- function(fit_object, color_set, net, pics_folder, save = FALSE) {
+  # --- 1. Setup: Define colors and a consistent theme for ALL plots ---
+  color_scheme_set(color_set)
+  current_colors <- color_scheme_get()
+  main_color <- current_colors$light
+  highlight_color <- current_colors$dark
+
+  param_labels <- c(
+    alpha_A = "alpha[A]", alpha_B = "alpha[B]",
+    sigma_A = "sigma[A]", sigma_B = "sigma[B]"
+  )
+
+  # Define a single theme object to apply to all plots for consistency
+  consistent_theme <- theme_minimal(base_size = 11) +
+    theme(
+      legend.position = "none",
+      panel.grid.minor = element_blank(),
+      axis.title = element_text(face = "plain"),
+      axis.text = element_text(size = 10),
+      plot.margin = margin(t = 5, r = 10, b = 5, l = 5),
+      strip.background = element_rect(fill = "grey92", color = NA),
+      strip.text = element_text(face = "plain", size = 11)
+    )
+
+  # --- 2. Diagnostic & Posterior Plots with Harmonized Style ---
+
+  # ACF plot
+  acf_plot <- mcmc_acf_bar(fit_object,
+    pars = names(param_labels),
+    facet_args = list(labeller = ggplot2::labeller(.default = label_parsed, .cols = param_labels))
+  ) +
+    consistent_theme +
+    hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
+    scale_y_continuous(breaks = c(0.2))
+
+  # Trace plot
+  trace_plot <- mcmc_trace(fit_object,
+    pars = names(param_labels),
+    facet_args = list(nrow = 2, labeller = ggplot2::labeller(.default = label_parsed, .cols = param_labels))
+  ) +
+    consistent_theme
+
+  # Posterior densities
+  dens_plot <- mcmc_dens_overlay(fit_object,
+    pars = names(param_labels),
+    facet_args = list(nrow = 2, labeller = ggplot2::labeller(.default = label_parsed, .cols = param_labels))
+  ) +
+    consistent_theme +
+    scale_y_continuous(labels = NULL)
+
+  # --- 3. PPC Plot with p-value annotation ---
+  unif_ppc_draws <- as_draws_df(fit_object)
+  d_obs <- nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
+  unif_d_ppc <- unif_ppc_draws$density_ppc
+
+  # Calculate p-value
+  p_value <- mean(unif_d_ppc >= d_obs)
+  p_value_label <- paste("Posterior p-value =", format(p_value, digits = 3))
+
+  # Calculate line position robustly
+  prelim_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
+    geom_histogram(bins = 30)
+  plot_data <- ggplot_build(prelim_plot)
+  bin_data <- plot_data$data[[1]]
+
+  # Check if d_obs is within the range of simulations to avoid errors
+  target_bin <- bin_data %>% filter(d_obs >= xmin & d_obs < xmax)
+  if (nrow(target_bin) > 0) {
+    line_position <- target_bin$xmin
+  } else {
+    line_position <- d_obs
+  }
+
+  # --- THE DYNAMIC FIX: Prepare data for ggrepel ---
+  # Isolate the data for only the bars in the tail (the highlighted ones)
+  tail_bars <- bin_data %>%
+    filter(xmin >= line_position)
+
+  # Create a data frame for ggrepel. We will add the label to only ONE row.
+  # The other rows will act as invisible "repulsion points".
+  if (nrow(tail_bars) > 0) {
+    # Find the tallest bar in the tail to anchor our label
+    label_anchor_index <- which.max(tail_bars$count) + 1
+
+    # Create a new column for the label text
+    tail_bars$label_text <- ""
+    tail_bars$label_text[label_anchor_index] <- p_value_label
+  }
+  # --- End of Fix ---
+
+
+  ppc_plot <- ggplot(data.frame(density = unif_d_ppc), aes(x = density)) +
+    geom_histogram(
+      aes(fill = after_stat(xmin) >= line_position),
+      bins = 30, color = "white", linewidth = 0.2
+    ) +
+    scale_fill_manual(values = c("FALSE" = main_color, "TRUE" = highlight_color)) +
+    annotate(
+      "segment",
+      x = line_position, xend = line_position,
+      y = 0, yend = Inf,
+      color = "black",
+      size = 1.6
+    ) +
+    annotate("text",
+      x = line_position, y = Inf, label = paste("Observed:", round(d_obs, 3)),
+      vjust = 2, color = "black", hjust = -0.1, fontface = "plain",
+      size = 4
+    ) +
+    labs(
+      x = "Density",
+      y = "Frequency"
+    ) +
+    consistent_theme
+
+  # Add the ggrepel layer ONLY if there are tail bars to label
+  if (nrow(tail_bars) > 0) {
+    ppc_plot <- ppc_plot +
+      # Use geom_text_repel instead of annotate
+      ggrepel::geom_text_repel(
+        data = tail_bars,
+        aes(x = x, y = count, label = label_text),
+        color = highlight_color,
+        size = 4,
+        fontface = "plain",
+        # --- Repulsion control ---
+        box.padding = 2, # How far the label box should be from points/other labels
+        point.padding = 0.3, # How far the label box should be from its own anchor point
+        min.segment.length = 5
+      )
+  }
+
+  # --- 4. Saving logic (unchanged) ---
+  if (save) {
+    ggsave(filename = here(pics_folder, "unif_ppc_acf.pdf"), plot = acf_plot, device = "pdf", width = 4, height = 3)
+    ggsave(filename = here(pics_folder, "unif_ppc_trace.pdf"), plot = trace_plot, device = "pdf", width = 4, height = 3)
+    ggsave(filename = here(pics_folder, "unif_ppc_post.pdf"), plot = dens_plot, width = 5, height = 3)
+    ggsave(filename = here(pics_folder, "unif_ppc_dens.pdf"), plot = ppc_plot, width = 5, height = 3)
+  }
+}
+
+bayes_plots(unif_0_02_ppc_fit, "red", net_0_02, unif_0_02_pics_folder, save = TRUE)
+bayes_plots(unif_0_07_ppc_fit, "blue", net_0_07, unif_0_07_pics_folder, save = TRUE)
 
 
 
