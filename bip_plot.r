@@ -34,7 +34,9 @@ norm_weights <- (weights - min(weights)) / (max(weights) - min(weights))
 edge_colors <- rgb(1, 1 - norm_weights, 1 - norm_weights)
 
 # Plot with subscripts
-pdf("bip_plot.pdf", width = 7, height = 4)
+pdf("bip_plot.pdf", width = 3, height = 2)
+par(mar = c(0, 0, 0, 0))
+
 plot(g,
   layout = layout,
   vertex.label = labels,
@@ -45,7 +47,25 @@ plot(g,
   vertex.shape = V(g)$shape,
   vertex.color = V(g)$color,
   edge.width = weights,
-  edge.color = edge_colors,
+  edge.color = edge_colors
+)
+
+dev.off()
+
+# Plot with subscripts
+png("bip_plot.png", width = 4, height = 3, units = "in", doi = 300)
+
+plot(g,
+  layout = layout,
+  vertex.label = labels,
+  vertex.label.color = "black",
+  vertex.label.cex = 1.4,
+  vertex.label.family = "sans",
+  vertex.size = 50,
+  vertex.shape = V(g)$shape,
+  vertex.color = V(g)$color,
+  edge.width = weights,
+  edge.color = edge_colors
 )
 
 dev.off()
