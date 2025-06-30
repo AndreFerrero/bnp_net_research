@@ -224,7 +224,7 @@ bayes_plots <- function(
       coord_cartesian(clip = "off") +
       # CI ticks with 2 decimal labels
       scale_x_continuous(
-        breaks = c(round(ci_low, 2), round(ci_high, 2)),
+        breaks = c(round(ci_low, 3), round(ci_high, 3)),
         limits = c(xmin, xmax),
         labels = scales::label_number(accuracy = 0.01)
       ) +
