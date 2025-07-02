@@ -122,11 +122,11 @@ summary_stats <- summary_stats |>
   )
 
 # Save summary under root_dir
-write.csv(summary_stats, file.path(root_dir, "dens_summary_py_dp_extra.csv"), row.names = FALSE)
+# write.csv(summary_stats, file.path(root_dir, "dens_summary_py_dp_extra.csv"), row.names = FALSE)
 
 
 # PLOTTING ---------------------------------------------------------------
-summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_both_py_dp.csv"))
+summary_stats <- read.csv(here("res", "density_PY", "new_sim", "dens_summary_asymm.csv"))
 library(ggplot2)
 
 # Fit linear models and extract slopes per sigma
@@ -200,8 +200,6 @@ p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = fac
   )
 
 
-ggsave(p_dens, filename = here("res", "pics", "density_analysis", "py", "vir_log2_dens.pdf"))
-
 log2_p_dens <- ggplot(
   summary_stats,
   aes(x = log2_size, y = log2_density, color = factor(sigmaB))
@@ -234,13 +232,7 @@ log2_p_dens <- ggplot(
 
   # X-axis: log2 of size with 10^j labels
   scale_x_continuous(
-    breaks = log2(c(100, 1000, 10000, 100000)),
-    labels = c(
-      expression(10^2),
-      expression(10^3),
-      expression(10^4),
-      expression(10^5)
-    )
+    breaks = pretty(log2(c(100, 1000, 10000, 100000)))
   ) +
   labs(
     x = expression(log[2](n)),
@@ -257,7 +249,6 @@ log2_p_dens <- ggplot(
 
 
 # Save the updated plot
-ggsave(log2_p_dens, filename = here("res", "pics", "density_analysis", "py", "loglog2_dens.pdf"))
 
 log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density, color = factor(sigmaB))) +
   geom_line(size = 0.1) +
@@ -305,8 +296,6 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     panel.grid.minor = element_blank()
   )
 
-# Save the updated plot
-ggsave(log2_p_dens_slopes, filename = here("res", "pics", "density_analysis", "py", "loglog2_dens_slopes.pdf"))
 
 library(patchwork)
 
@@ -321,7 +310,7 @@ combined_plot <- (p_dens + log2_p_dens) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "both", "grid_dens_vir.pdf"),
+  here("res", "pics", "density_analysis", "asymm", "grid_dens_vir.pdf"),
   combined_plot,
   width = 7, height = 4
 )
@@ -336,7 +325,7 @@ combined_plot_slopes <- (p_dens + log2_p_dens_slopes) +
   )
 
 ggsave(
-  here("res", "pics", "density_analysis", "both", "slope_grid_dens_vir.pdf"),
+  here("res", "pics", "density_analysis", "asymm", "slope_grid_dens_vir.pdf"),
   combined_plot_slopes,
   width = 7, height = 4
 )
