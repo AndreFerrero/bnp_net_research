@@ -218,6 +218,8 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
     x = "% data",
     y = expression(log[10](BF))
   ) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf,
+         alpha = 0.1, fill = "gray50") +
   scale_x_continuous(
     breaks = unique(bf_all_deltas$pct),
     expand = c(0.01, 0)
@@ -230,7 +232,9 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
   theme_minimal() +
   theme(
     legend.position = "top",
-    legend.direction = "horizontal"
+    legend.direction = "horizontal",
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor.y = element_blank()
   )
 
 
@@ -240,3 +244,108 @@ ggsave(
   bf_combined_plot,
   width = 7, height = 4
 )
+
+# Nice full ppc plot
+load(here(fits_dir, "unif_ppc_fit_100pct.Rdata"))
+d_obs_full <- compute_d_obs(full_edges, total_weight)$d_obs
+draws_df <- as_draws_df(fit)
+d_ppc <- draws_df$density_ppc
+
+# Calculate p-value
+p_value <- mean(d_ppc >= d_obs_full)
+p_value_label <- paste("Posterior p-value =", format(p_value, digits = 3))
+
+# Calculate line position robustly
+prelim_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+  geom_histogram(bins = 30)
+plot_data <- ggplot_build(prelim_plot)
+bin_data <- plot_data$data[[1]]
+
+# Check if d_obs is within the range of simulations to avoid errors
+target_bin <- bin_data %>% filter(d_obs_full >= xmin & d_obs_full < xmax)
+if (nrow(target_bin) > 0) {
+  line_position <- target_bin$xmin
+} else {
+  line_position <- d_obs_full
+}
+
+# --- THE DYNAMIC FIX: Prepare data for ggrepel ---
+# Isolate the data for only the bars in the tail (the highlighted ones)
+tail_bars <- bin_data %>%
+  filter(xmin >= line_position)
+
+# Create a data frame for ggrepel. We will add the label to only ONE row.
+# The other rows will act as invisible "repulsion points".
+if (nrow(tail_bars) > 0) {
+  # Find the tallest bar in the tail to anchor our label
+  label_anchor_index <- which.max(tail_bars$count) + 1
+
+  # Create a new column for the label text
+  tail_bars$label_text <- ""
+  tail_bars$label_text[label_anchor_index] <- p_value_label
+}
+
+consistent_theme <- theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(face = "plain"),
+    axis.text = element_text(size = 10),
+    plot.margin = margin(t = 5, r = 10, b = 5, l = 5),
+    strip.background = element_rect(fill = "grey92", color = NA),
+    strip.text = element_text(face = "plain", size = 11)
+  )
+
+color_scheme_set("orange")
+current_colors <- color_scheme_get()
+main_color <- current_colors$light
+highlight_color <- current_colors$dark
+
+ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+  geom_histogram(
+    aes(fill = after_stat(xmin) >= line_position),
+    bins = 30, color = "white", linewidth = 0.2
+  ) +
+  scale_fill_manual(values = c("FALSE" = main_color, "TRUE" = highlight_color)) +
+  annotate(
+    "segment",
+    x = line_position, xend = line_position,
+    y = 0, yend = Inf,
+    color = "black",
+    size = 1.6
+  ) +
+  annotate("text",
+    x = line_position, y = Inf, label = paste("Observed:", round(d_obs_full, 3)),
+    vjust = 2, color = "black", hjust = 1.1, fontface = "plain",
+    size = 4
+  ) +
+  labs(
+    x = "Density",
+    y = "Frequency"
+  ) +
+  consistent_theme
+
+# Add the ggrepel layer ONLY if there are tail bars to label
+if (nrow(tail_bars) > 0) {
+  ppc_plot <- ppc_plot +
+    # Use geom_text_repel instead of annotate
+    ggrepel::geom_text_repel(
+      data = tail_bars,
+      aes(x = x, y = count, label = label_text),
+      color = highlight_color,
+      size = 4,
+      fontface = "plain",
+      # --- Repulsion control ---
+      box.padding = 2, # How far the label box should be from points/other labels
+      point.padding = 0.3, # How far the label box should be from its own anchor point
+      min.segment.length = 5
+    )
+}
+
+ggsave(
+  here(plots_dir, "full_ppc.pdf"),
+  ppc_plot,
+  width = 7, height = 4
+)
+
+total_weight

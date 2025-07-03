@@ -347,3 +347,4 @@ bayes_plots(unif_0_07_ppc_fit, "blue", net_0_07,
   unif_0_07_pics_folder, alpha_true, sigma_true_0_07,
   save = TRUE
 )
+
