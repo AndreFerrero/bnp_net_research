@@ -308,9 +308,17 @@ bayes_plots <- function(
     ) +
     labs(
       x = "Density",
-      y = "Frequency"
+      y = "Posterior Predictive Distribution"
     ) +
-    consistent_theme
+    consistent_theme +
+    theme(
+      axis.ticks.y = element_blank(), # removes y-axis tick marks
+      axis.text.y = element_blank(), # removes y-axis labels
+      axis.line.y = element_blank(), # removes the axis line if present
+      panel.grid.major.y = element_blank(), # removes major horizontal grid lines
+      panel.grid.minor.y = element_blank() # removes minor horizontal grid lines
+    )
+
 
   # Add the ggrepel layer ONLY if there are tail bars to label
   if (nrow(tail_bars) > 0) {
@@ -347,4 +355,3 @@ bayes_plots(unif_0_07_ppc_fit, "blue", net_0_07,
   unif_0_07_pics_folder, alpha_true, sigma_true_0_07,
   save = TRUE
 )
-

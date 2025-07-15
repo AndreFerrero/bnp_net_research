@@ -218,8 +218,10 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
     x = "% data",
     y = expression(log[10](BF))
   ) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf,
-         alpha = 0.1, fill = "gray50") +
+  annotate("rect",
+    xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf,
+    alpha = 0.1, fill = "gray50"
+  ) +
   scale_x_continuous(
     breaks = unique(bf_all_deltas$pct),
     expand = c(0.01, 0)
@@ -245,7 +247,7 @@ ggsave(
   width = 7, height = 4
 )
 
-# Nice full ppc plot
+## Nice full ppc plot ####
 load(here(fits_dir, "unif_ppc_fit_100pct.Rdata"))
 d_obs_full <- compute_d_obs(full_edges, total_weight)$d_obs
 draws_df <- as_draws_df(fit)
@@ -321,9 +323,16 @@ ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
   ) +
   labs(
     x = "Density",
-    y = "Frequency"
+    y = "Posterior Predictive Ditribution"
   ) +
-  consistent_theme
+  consistent_theme +
+  theme(
+    axis.ticks.y = element_blank(), # removes y-axis tick marks
+    axis.text.y = element_blank(), # removes y-axis labels
+    axis.line.y = element_blank(), # removes the axis line if present
+    panel.grid.major.y = element_blank(), # removes major horizontal grid lines
+    panel.grid.minor.y = element_blank() # removes minor horizontal grid lines
+  )
 
 # Add the ggrepel layer ONLY if there are tail bars to label
 if (nrow(tail_bars) > 0) {
