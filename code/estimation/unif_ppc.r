@@ -308,7 +308,7 @@ bayes_plots <- function(
     ) +
     labs(
       x = "Density",
-      y = "Posterior Predictive Distribution"
+      y = NULL
     ) +
     consistent_theme +
     theme(

@@ -150,9 +150,9 @@ dens_all <- ggplot(sigma_long, aes(x = value, color = factor(pct))) +
     guide = guide_legend(nrow = 1, override.aes = list(linetype = 1, shape = NA, fill = NA))
   ) +
   labs(
-    color = "% data"
+    color = "sample size (%)",
+    y = NULL
   ) +
-  ylab("Posterior density") +
   theme_minimal() +
   theme(
     legend.position = "top",
@@ -175,7 +175,7 @@ for (delta in delta_values) {
     geom_line() +
     geom_point() +
     labs(
-      x = "% data",
+      x = "sample size (%)",
       y = "log10 Bayes Factor",
       title = bquote("Bayes factor for " ~ sigma[A] < .(delta))
     ) +
@@ -207,15 +207,14 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
     option = "B",
     end = 0.9,
     direction = -1,
-    guide = guide_legend(nrow = 1),
-    name = "% data"
+    guide = "none" # hides the colour legend entirely
   ) +
   scale_linetype_manual(
     values = c("solid", "dashed", "dotted"),
     name = expression(delta)
   ) +
   labs(
-    x = "% data",
+    x = "sample size (%)",
     y = expression(log[10](BF))
   ) +
   annotate("rect",
@@ -238,8 +237,6 @@ bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
     panel.grid.minor.x = element_blank(),
     panel.grid.minor.y = element_blank()
   )
-
-
 
 ggsave(
   here(plots_dir, "bayes_factor_all_deltas_col.pdf"),
@@ -323,7 +320,7 @@ ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
   ) +
   labs(
     x = "Density",
-    y = "Posterior Predictive Ditribution"
+    y = NULL
   ) +
   consistent_theme +
   theme(
