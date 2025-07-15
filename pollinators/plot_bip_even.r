@@ -60,7 +60,7 @@ plant_x_range <- range(layout[plant_ids, 1])
 pollinator_x_range <- range(layout[pollinator_ids, 1])
 
 # Assign evenly spaced x-positions within original range
-layout[plant_ids, 1] <- seq(from = plant_x_range[1], to = plant_x_range[2], length.out = length(plant_ids))
+layout[plant_ids, 1] <- seq(from = pollinator_x_range[1], to = pollinator_x_range[2], length.out = length(plant_ids))
 layout[pollinator_ids, 1] <- seq(from = pollinator_x_range[1], to = pollinator_x_range[2], length.out = length(pollinator_ids))
 
 # Wrap as data frame
@@ -109,6 +109,24 @@ graph_plot <- ggplot() +
   coord_flip() +
   theme_void() +
   theme(legend.position = "none")
+
+# Get x (vertical) max position to place labels slightly above nodes
+max_x <- max(coords$x)
+
+# Compute mean horizontal (y) position for each group
+label_y_plants <- mean(coords$y[coords$type == FALSE])
+label_y_pollinators <- mean(coords$y[coords$type == TRUE])
+
+# Add titles to the plot
+graph_plot <- graph_plot +
+  annotate("text",
+    x = max_x + 1.5, y = label_y_plants,
+    label = "Plants", fontface = "bold", size = 5, hjust = -0.9
+  ) +
+  annotate("text",
+    x = max_x + 1.5, y = label_y_pollinators,
+    label = "Pollinators", fontface = "bold", size = 5, hjust = 1.2
+  )
 
 # --- Save -----------------------------------------------------------------
 ggsave(here(poll_dir, "graph_bipartite_even.pdf"),
