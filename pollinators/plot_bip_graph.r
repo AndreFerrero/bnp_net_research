@@ -27,12 +27,7 @@ nodes <- tibble(
 
 graph <- graph_from_data_frame(d = full_edges, vertices = nodes, directed = FALSE)
 
-# --- IMPROVEMENT 1: Better Color Scheme ---
-# Use a qualitative palette from RColorBrewer, which is better for
-# distinguishing discrete categories (like different plants).
-# The 'Paired' palette is good for contrast.
-# If you have more than 12 plants, we can create a palette that
-# interpolates the Brewer colors to get enough unique colors.
+# Color scheme
 n_plants <- length(plants)
 if (n_plants <= 12) {
   # Use the 'Paired' palette if it has enough colors
@@ -44,6 +39,9 @@ if (n_plants <= 12) {
 
 # Create a named vector for easy lookup
 plant_colors <- setNames(plant_palette, plants)
+plant_colors[4] <- "#ED4F50"
+plant_colors[9] <- "#2A7FB7"
+plant_colors[12] <- "gold2"
 
 # Assign colors to nodes and edges
 V(graph)$color <- ifelse(
@@ -62,12 +60,7 @@ graph_plot <- ggraph(graph, layout = "bipartite") +
   geom_edge_link(aes(color = I(color)), alpha = 0.6, width = 0.7) +
   geom_node_point(aes(color = I(color), size = degree)) +
 
-  # --- IMPROVEMENT 2: Align Node Labels ---
-  # To align labels perfectly, we combine `hjust` and `nudge_x`.
-  # 1. `hjust`: Sets the text anchor. `1` for right-aligned (for left nodes),
-  #    `0` for left-aligned (for right nodes).
-  # 2. `nudge_x`: Pushes the text horizontally by a *fixed amount*,
-  #    creating a uniform gap regardless of node size.
+  # Align labels
   geom_node_text(
     aes(label = name),
     # Set alignment: 1 = right align, 0 = left align
