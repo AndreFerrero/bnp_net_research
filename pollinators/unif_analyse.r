@@ -7,6 +7,10 @@ library(posterior)
 
 poll_dir <- here("pollinators/mpl025")
 
+wo_repl_dir <- here(poll_dir, "wo_repl")
+plots_dir <- here(wo_repl_dir, "unif_plots")
+fits_dir <- here(wo_repl_dir, "unif_fit")
+
 # IMPORT DATA
 # Read the CSV file
 # (Change the file path to where you've saved your file)
@@ -37,22 +41,6 @@ poll <- edges |>
 
 (total_weight <- sum(edges$weight))
 (binary_weight <- nrow(edges))
-
-
-# compare with theoretical network
-source("code/funs/py_sample.R")
-source("code/funs/sample_net.R")
-
-# True parameters
-alpha_true <- c(5, 5)
-sigma_true <- c(0, 0.1)
-
-tnet <- sample_net(total_weight, alpha_true, sigma_true)
-
-nrow(unique(tnet$edges))
-nrow(tnet$edges) == total_weight
-
-nrow(unique(tnet$edges)) / (tnet$xA$K * tnet$xB$K)
 
 # ESTIMATION
 
@@ -91,99 +79,155 @@ nrow(unique(tnet$edges)) / (tnet$xA$K * tnet$xB$K)
 # save(unif_ppc_fit, file = here(poll_dir, "full_unif_ppc_fit.Rdata"))
 
 # LOAD MODEL FIT
+load(here(fits_dir, "unif_ppc_fit_100pct.Rdata"))
+## Nice full ppc plot ####
 
-load(here(poll_dir, "wo_repl", "unif_fit", "unif_ppc_fit_100pct.Rdata"))
+draws_df <- as_draws_df(fit)
+d_ppc <- draws_df$density_ppc
 
-# ——————————————————————————————————————————————————————————————
-# 4. Extract and analyze posterior‐predictive density
-# ——————————————————————————————————————————————————————————————
-draws <- as_draws_df(fit)
-d_ppc <- draws$density_ppc
+# Calculate p-value
+p_value <- mean(d_ppc >= d_obs)
+p_value_label <- paste("Posterior p-value =", format(p_value, digits = 3))
 
-# Summaries of the PPC distribution
-d_quantile <- quantile(d_ppc, probs = c(0.025, 0.5, 0.975))
-print(d_quantile)
-cat("Observed density:", round(d_obs, 4), "\n")
+# Calculate line position robustly
+prelim_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+  geom_histogram(bins = 30)
+plot_data <- ggplot_build(prelim_plot)
+bin_data <- plot_data$data[[1]]
 
-# Posterior p-value
-sum(d_ppc >= d_obs) / length(d_ppc)
+# Check if d_obs is within the range of simulations to avoid errors
+target_bin <- bin_data %>% filter(d_obs >= xmin & d_obs < xmax)
+if (nrow(target_bin) > 0) {
+  line_position <- target_bin$xmin
+} else {
+  line_position <- d_obs
+}
 
+# --- THE DYNAMIC FIX: Prepare data for ggrepel ---
+# Isolate the data for only the bars in the tail (the highlighted ones)
+tail_bars <- bin_data %>%
+  filter(xmin >= line_position)
 
-# Plot the PPC histogram with observed line
-ggplot(data.frame(density = d_ppc), aes(x = density)) +
-  geom_histogram(bins = 30, color = "black", fill = "lightblue") +
-  geom_vline(xintercept = d_obs, color = "red", size = 1) +
+# Create a data frame for ggrepel. We will add the label to only ONE row.
+# The other rows will act as invisible "repulsion points".
+if (nrow(tail_bars) > 0) {
+  # Find the tallest bar in the tail to anchor our label
+  label_anchor_index <- which.max(tail_bars$count) + 1
+
+  # Create a new column for the label text
+  tail_bars$label_text <- ""
+  tail_bars$label_text[label_anchor_index] <- p_value_label
+}
+
+consistent_theme <- theme_minimal(base_size = 11) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(face = "plain"),
+    axis.text = element_text(size = 10),
+    plot.margin = margin(t = 5, r = 10, b = 5, l = 5),
+    strip.background = element_rect(fill = "grey92", color = NA),
+    strip.text = element_text(face = "plain", size = 11)
+  )
+
+color_scheme_set("orange")
+current_colors <- color_scheme_get()
+main_color <- current_colors$light
+highlight_color <- current_colors$dark
+
+ppc_plot <- ggplot(data.frame(density = d_ppc), aes(x = density)) +
+  geom_histogram(
+    aes(fill = after_stat(xmin) >= line_position),
+    bins = 30, color = "white", linewidth = 0.2
+  ) +
+  scale_fill_manual(values = c("FALSE" = main_color, "TRUE" = highlight_color)) +
+  annotate(
+    "segment",
+    x = line_position, xend = line_position,
+    y = 0, yend = Inf,
+    color = "black",
+    size = 1.6
+  ) +
+  annotate("text",
+    x = line_position, y = Inf, label = paste("Observed:", round(d_obs, 3)),
+    vjust = 2, color = "black", hjust = 1.1, fontface = "plain",
+    size = 4
+  ) +
   labs(
-    x = NULL,
+    x = "Density",
     y = NULL
   ) +
-  theme_minimal()
+  consistent_theme +
+  theme(
+    axis.ticks.y = element_blank(), # removes y-axis tick marks
+    axis.text.y = element_blank(), # removes y-axis labels
+    axis.line.y = element_blank(), # removes the axis line if present
+    panel.grid.major.y = element_blank(), # removes major horizontal grid lines
+    panel.grid.minor.y = element_blank() # removes minor horizontal grid lines
+  )
+
+# Add the ggrepel layer ONLY if there are tail bars to label
+if (nrow(tail_bars) > 0) {
+  ppc_plot <- ppc_plot +
+    # Use geom_text_repel instead of annotate
+    ggrepel::geom_text_repel(
+      data = tail_bars,
+      aes(x = x, y = count, label = label_text),
+      color = highlight_color,
+      size = 4,
+      fontface = "plain",
+      # --- Repulsion control ---
+      box.padding = 2, # How far the label box should be from points/other labels
+      point.padding = 0.3, # How far the label box should be from its own anchor point
+      min.segment.length = 5
+    )
+}
 
 ggsave(
-  filename = here(poll_dir, "wo_repl", "unif_plots", "full_ppc.pdf"),
-  width = 7,
-  height = 4
+  here(plots_dir, "full_ppc.pdf"),
+  ppc_plot,
+  width = 7, height = 4
 )
 
-
-# Parameters to extract
-params <- c("alpha_A", "alpha_B", "sigma_A", "sigma_B")
-
-# Extract diagnostic summary
-extract_diagnostics <- function(fit, params) {
-  summ <- summary(fit, pars = params)$summary
-  data.frame(
-    Rhat = round(summ[, "Rhat"], 3),
-    n_eff = round(summ[, "n_eff"], 0)
-  )
-}
-
-diag <- extract_diagnostics(fit, params)
-
-# Get number of divergences
-get_divergences <- function(fit) {
-  sampler_params <- rstan::get_sampler_params(fit, inc_warmup = FALSE)
-  sum(sapply(sampler_params, function(x) sum(x[, "divergent__"])))
-}
-
-div <- get_divergences(fit)
-
-# Combine into one data frame
-diag_df <- data.frame(
-  Parameter = params,
-  Rhat = diag$Rhat,
-  Neff = diag$n_eff
+# For plotting parsing
+param_labels <- c(
+  alpha_A = "alpha[A]", alpha_B = "alpha[B]",
+  sigma_A = "sigma[A]", sigma_B = "sigma[B]"
 )
 
-# Add math formatting
-diag_df$Parameter <- recode(diag_df$Parameter,
-  "alpha_A" = "\\alpha_A",
-  "alpha_B" = "\\alpha_B",
-  "sigma_A" = "\\sigma_A",
-  "sigma_B" = "\\sigma_B"
-)
-
-# Print LaTeX table
-cat("\\begin{table}[ht]\n")
-cat("\\centering\n")
-cat("\\caption{Convergence diagnostics for the estimation on real data, including $\\widehat{R}$, effective sample size $n_{\\mathrm{eff}}$, and number of divergent transitions.}\n")
-cat("\\label{tab:real_diag}\n")
-cat("\\begin{tabular}{lcc}\n")
-cat("\\toprule\n")
-cat("Parameter & $\\widehat{R}$ (1) & $n_{\\mathrm{eff}}$ (1) & $\\widehat{R}$ (2) & $n_{\\mathrm{eff}}$ (2) \\\\\n")
-cat("\\midrule\n")
-
-for (i in 1:nrow(diag_df)) {
-  cat(paste0(
-    "$", diag_df$Parameter[i], "$ & ",
-    diag_df$Rhat[i], " & ", diag_df$Neff[i]" \\\\\n"
+# ACF plot
+acf_plot <- mcmc_acf_bar(fit,
+  pars = names(param_labels),
+  facet_args = list(labeller = ggplot2::labeller(
+    .default = label_parsed,
+    .cols = param_labels
   ))
-}
+) +
+  consistent_theme +
+  hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
+  scale_y_continuous(breaks = c(0.2))
 
-# Add divergences row
-cat("\\midrule\n")
-cat(paste0("Divergences & \\multicolumn{2}{c}{"div"}\\\\\n"))
+ggsave(
+  filename = here(plots_dir, "full_acf.pdf"),
+  acf_plot,
+  width = 7, height = 4
+)
 
-cat("\\bottomrule\n")
-cat("\\end{tabular}\n")
-cat("\\end{table}\n")
+# Trace plot
+trace_plot <- mcmc_trace(fit,
+  pars = names(param_labels),
+  facet_args = list(
+    nrow = 2,
+    labeller = ggplot2::labeller(
+      .default = label_parsed,
+      .cols = param_labels
+    )
+  )
+) +
+  consistent_theme
+
+ggsave(
+  filename = here(plots_dir, "full_trace.pdf"),
+  trace_plot,
+  width = 7, height = 4
+)
