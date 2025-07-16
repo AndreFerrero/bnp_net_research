@@ -124,3 +124,66 @@ ggsave(
   width = 7,
   height = 4
 )
+
+
+# Parameters to extract
+params <- c("alpha_A", "alpha_B", "sigma_A", "sigma_B")
+
+# Extract diagnostic summary
+extract_diagnostics <- function(fit, params) {
+  summ <- summary(fit, pars = params)$summary
+  data.frame(
+    Rhat = round(summ[, "Rhat"], 3),
+    n_eff = round(summ[, "n_eff"], 0)
+  )
+}
+
+diag <- extract_diagnostics(fit, params)
+
+# Get number of divergences
+get_divergences <- function(fit) {
+  sampler_params <- rstan::get_sampler_params(fit, inc_warmup = FALSE)
+  sum(sapply(sampler_params, function(x) sum(x[, "divergent__"])))
+}
+
+div <- get_divergences(fit)
+
+# Combine into one data frame
+diag_df <- data.frame(
+  Parameter = params,
+  Rhat = diag$Rhat,
+  Neff = diag$n_eff
+)
+
+# Add math formatting
+diag_df$Parameter <- recode(diag_df$Parameter,
+  "alpha_A" = "\\alpha_A",
+  "alpha_B" = "\\alpha_B",
+  "sigma_A" = "\\sigma_A",
+  "sigma_B" = "\\sigma_B"
+)
+
+# Print LaTeX table
+cat("\\begin{table}[ht]\n")
+cat("\\centering\n")
+cat("\\caption{Convergence diagnostics for the estimation on real data, including $\\widehat{R}$, effective sample size $n_{\\mathrm{eff}}$, and number of divergent transitions.}\n")
+cat("\\label{tab:real_diag}\n")
+cat("\\begin{tabular}{lcc}\n")
+cat("\\toprule\n")
+cat("Parameter & $\\widehat{R}$ (1) & $n_{\\mathrm{eff}}$ (1) & $\\widehat{R}$ (2) & $n_{\\mathrm{eff}}$ (2) \\\\\n")
+cat("\\midrule\n")
+
+for (i in 1:nrow(diag_df)) {
+  cat(paste0(
+    "$", diag_df$Parameter[i], "$ & ",
+    diag_df$Rhat[i], " & ", diag_df$Neff[i]" \\\\\n"
+  ))
+}
+
+# Add divergences row
+cat("\\midrule\n")
+cat(paste0("Divergences & \\multicolumn{2}{c}{"div"}\\\\\n"))
+
+cat("\\bottomrule\n")
+cat("\\end{tabular}\n")
+cat("\\end{table}\n")

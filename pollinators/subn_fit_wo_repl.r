@@ -6,7 +6,7 @@ library(rstan)
 
 poll_dir <- here("poll")
 
-data <- read.csv(here(poll_dir, "M_PL_019.csv"),
+data <- read.csv(here(poll_dir, "M_PL_025.csv"),
   check.names = FALSE, row.names = 1
 )
 
@@ -104,7 +104,7 @@ for (p in percentages) {
     warmup  = 1000,
     thin    = 10,
     seed    = 42,
-    control = list(adapt_delta = 0.999, max_treedepth = 15)
+    control = list(adapt_delta = 0.999, max_treedepth = 10)
   )
 
   check_hmc_diagnostics(fit)
