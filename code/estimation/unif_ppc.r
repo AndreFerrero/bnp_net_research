@@ -131,7 +131,9 @@ bayes_plots <- function(
   ) +
     consistent_theme +
     hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
-    scale_y_continuous(breaks = c(0.2))
+    scale_y_continuous(breaks = c(0.2)) +
+    scale_x_continuous(breaks = c(0, 10, 20)) +
+    ylab(NULL)
 
   # Trace plot
   trace_plot <- mcmc_trace(fit_object,

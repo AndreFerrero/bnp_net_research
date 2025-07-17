@@ -124,7 +124,6 @@ consistent_theme <- theme_minimal(base_size = 11) +
     legend.position = "none",
     panel.grid.minor = element_blank(),
     axis.title = element_text(face = "plain"),
-    axis.text = element_text(size = 10),
     plot.margin = margin(t = 5, r = 10, b = 5, l = 5),
     strip.background = element_rect(fill = "grey92", color = NA),
     strip.text = element_text(face = "plain", size = 11)
