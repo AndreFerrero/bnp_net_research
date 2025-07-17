@@ -81,6 +81,7 @@ poll <- edges |>
 # LOAD MODEL FIT
 load(here(fits_dir, "unif_ppc_fit_100pct.Rdata"))
 ## Nice full ppc plot ####
+summary(fit)$summary
 
 draws_df <- as_draws_df(fit)
 d_ppc <- draws_df$density_ppc
@@ -195,7 +196,7 @@ param_labels <- c(
 )
 
 # ACF plot
-acf_plot <- mcmc_acf_bar(fit,
+acf_plot <- mcmc_acf(fit,
   pars = names(param_labels),
   facet_args = list(labeller = ggplot2::labeller(
     .default = label_parsed,

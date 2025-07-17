@@ -122,7 +122,7 @@ bayes_plots <- function(
   # --- 2. Diagnostic & Posterior Plots with Harmonized Style ---
 
   # ACF plot
-  acf_plot <- mcmc_acf_bar(fit_object,
+  acf_plot <- mcmc_acf(fit_object,
     pars = names(param_labels),
     facet_args = list(labeller = ggplot2::labeller(
       .default = label_parsed,
