@@ -195,7 +195,7 @@ p_dens <- ggplot(summary_stats, aes(x = log2_size, y = mean_density, color = fac
   ) +
   theme_minimal() +
   theme(
-    legend.position = "bottom",
+    legend.position = "none",
     panel.grid.minor = element_blank()
   )
 
@@ -279,7 +279,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
     data = label_df,
     aes(label = label),
     hjust = -0.1,
-    vjust = -0.8,
+    vjust = -2.9,
     size = 3,
     show.legend = FALSE
   ) +
@@ -292,7 +292,7 @@ log2_p_dens_slopes <- ggplot(summary_stats, aes(x = log2_size, y = log2_density,
   ) +
   theme_minimal() +
   theme(
-    legend.position = "bottom",
+    legend.position = "none",
     panel.grid.minor = element_blank()
   )
 
@@ -327,5 +327,36 @@ combined_plot_slopes <- (p_dens + log2_p_dens_slopes) +
 ggsave(
   here("res", "pics", "density_analysis", "asymm", "slope_grid_dens_vir.pdf"),
   combined_plot_slopes,
+  width = 7, height = 4
+)
+
+# Plots with No legend
+noleg_combined_plot <- (p_dens + log2_p_dens) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "none",
+    legend.justification = "center",
+    legend.direction = "horizontal",
+    legend.box.just = "center"
+  )
+
+ggsave(
+  here("res", "pics", "density_analysis", "asymm", "noleg_grid_dens_vir.pdf"),
+  noleg_combined_plot,
+  width = 7, height = 4
+)
+
+noleg_combined_plot_slopes <- (p_dens + log2_p_dens_slopes) +
+  plot_layout(guides = "collect") &
+  theme(
+    legend.position = "none",
+    legend.justification = "center",
+    legend.direction = "horizontal",
+    legend.box.just = "center"
+  )
+
+ggsave(
+  here("res", "pics", "density_analysis", "asymm", "noleg_slope_grid_dens_vir.pdf"),
+  noleg_combined_plot_slopes,
   width = 7, height = 4
 )
