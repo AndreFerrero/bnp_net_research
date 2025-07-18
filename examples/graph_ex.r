@@ -1,95 +1,48 @@
+# Load required package
 library(igraph)
 
-set.seed(123)
-# --- Setup (same as before) ---
-edges <- data.frame(
-  from = c("A", "A", "B", "C", "C", "D", "A"),
-  to = c("B", "C", "C", "D", "E", "E", "B"),
-  label = c("1", "2", "3", "4", "5", "6", "7")
-)
-g <- graph_from_data_frame(edges, directed = FALSE)
-layout <- layout_with_fr(g)
+# Define the edges (including duplicates)
+edges <- c("A", "B", "A", "B", "A", "C")
+
+# Create the graph with multiple edges
+g <- graph(edges, directed = FALSE)
+
+# Automatically assign curvature for multiple edges
 E(g)$curved <- curve_multiple(g)
 
+# Save layout to keep positions consistent across both plots
+layout_fixed <- layout_with_kk(g)
 
-# --- 1) Save Plain graph (no labels) to PDF ---
-pdf("graph_plain.pdf", width = 3, height = 2)
-par(mar = c(0, 0, 0, 0)) # Set margins to zero for a clean look
-plot(g,
-  layout = layout,
-  vertex.label = NA,
-  vertex.color = "gray90",
+# Open PDF device
+pdf("graph_comparison.pdf", width = 12, height = 6) # Wider for side-by-side
+
+# Set up plotting area: 1 row, 2 columns
+par(mfrow = c(1, 2))
+
+# ---------- Plot 1: Repeated edges, default node shapes ----------
+plot(
+  g,
+  layout = layout_fixed,
+  main = "Repeated Edges (Default Shapes)",
   vertex.size = 30,
-  edge.color = "gray50",
-  edge.label = NA
+  vertex.label.cex = 1.5,
+  vertex.color = "lightblue",
+  vertex.frame.color = "black"
 )
+
+# ---------- Plot 2: Same graph, with different node shapes ----------
+# Assign shapes and colors based on group
+V(g)$shape <- ifelse(V(g)$name == "A", "circle", "square")
+V(g)$color <- ifelse(V(g)$name == "A", "lightblue", "orange")
+
+plot(
+  g,
+  layout = layout_fixed,
+  main = "Node Shapes by Group",
+  vertex.size = 30,
+  vertex.label.cex = 1.5,
+  vertex.frame.color = "black"
+)
+
+# Close the PDF device
 dev.off()
-
-# --- 2) Save Graph with vertex labels to PDF ---
-pdf("graph_vertex_labels.pdf", width = 3, height = 2)
-par(mar = c(0, 0, 0, 0))
-plot(g,
-  layout = layout,
-  vertex.label = V(g)$name,
-  vertex.label.color = "black",
-  vertex.label.cex = 1.2,
-  vertex.color = "gray90",
-  vertex.size = 30,
-  edge.color = "gray50",
-  edge.label = NA
-)
-dev.off()
-
-# --- 3) Save Graph with edge labels to PDF ---
-pdf("graph_edge_labels.pdf", width = 3, height = 2)
-par(mar = c(0, 0, 0, 0))
-plot(g,
-  layout = layout,
-  vertex.label = NA,
-  vertex.color = "gray90",
-  vertex.size = 30,
-  edge.color = "gray50",
-  edge.label = E(g)$label,
-  edge.label.color = "black",
-  edge.label.cex = 1.5
-)
-dev.off()
-
-pdf("combined_graphs.pdf", width = 4, height = 2)
-par(mfrow = c(1, 3), mar = c(0, 0, 2, 0))
-plot(g,
-  layout = layout,
-  vertex.label = NA,
-  vertex.color = "gray90",
-  vertex.size = 30,
-  edge.color = "gray50",
-  edge.label = NA,
-  main = "(a)"
-)
-
-plot(g,
-  layout = layout,
-  vertex.label = V(g)$name,
-  vertex.label.color = "black",
-  vertex.label.cex = 1.2,
-  vertex.color = "gray90",
-  vertex.size = 30,
-  edge.color = "gray50",
-  edge.label = NA,
-  main = "(b)"
-)
-
-plot(g,
-  layout = layout,
-  vertex.label = NA,
-  vertex.color = "gray90",
-  vertex.size = 30,
-  edge.color = "gray50",
-  edge.label = E(g)$label,
-  edge.label.color = "black",
-  edge.label.cex = 1.5,
-  main = "(c)"
-)
-
-dev.off()
-par(mfrow = c(1, 1))
