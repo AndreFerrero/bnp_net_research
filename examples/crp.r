@@ -7,17 +7,20 @@ N <- 30
 # Simulate CRP
 table_assignments <- numeric(N)
 tables <- list()
+table_creation_order <- integer()  # To record order of new table creation
 
 for (i in 1:N) {
   if (i == 1) {
     table_assignments[i] <- 1
     tables[[1]] <- 1
+    table_creation_order <- c(table_creation_order, 1)
   } else {
     probs <- c(sapply(tables, length), alpha)
     probs <- probs / sum(probs)
     choice <- sample(1:(length(tables) + 1), 1, prob = probs)
     if (choice > length(tables)) {
       tables[[choice]] <- i
+      table_creation_order <- c(table_creation_order, choice)
     } else {
       tables[[choice]] <- c(tables[[choice]], i)
     }
@@ -25,8 +28,11 @@ for (i in 1:N) {
   }
 }
 
+# Map: table index -> order of appearance (1, 2, ...)
+table_order_labels <- match(1:length(tables), table_creation_order)
+
 # Save to PDF
-pdf("crp.pdf", width = 4, height = 3)
+pdf("examples/crp.pdf", width = 4, height = 3)
 
 # Prepare plot
 n_tables <- length(tables)
@@ -38,13 +44,17 @@ plot(NA,
   xaxs = "i", yaxs = "i"
 )
 
-# Function to draw circular table and customer dots (without labels)
-draw_table <- function(center_x, center_y, radius, customers, color) {
+# Function to draw circular table and customer dots
+draw_table <- function(center_x, center_y, radius, customers, color, table_label) {
+  # Draw table
   symbols(center_x, center_y,
-    circles = radius, inches = FALSE,
-    add = TRUE, bg = adjustcolor(color, alpha.f = 0.2), fg = NA
-  )
+          circles = radius, inches = FALSE,
+          add = TRUE, bg = adjustcolor(color, alpha.f = 0.2), fg = NA)
+  
+  # Draw table label (order of appearance) in center
+  text(center_x, center_y, labels = table_label, cex = 1.2, font = 2)
 
+  # Draw customers
   n <- length(customers)
   if (n == 1) {
     points(center_x, center_y + radius, pch = 21, bg = color, cex = 1.5)
@@ -65,7 +75,10 @@ for (i in 1:n_tables) {
   theta <- angle_step * (i - 1)
   cx <- layout_radius * cos(theta)
   cy <- layout_radius * sin(theta)
-  draw_table(cx, cy, radius = 1.5, customers = tables[[i]], color = colors[i])
+  draw_table(cx, cy, radius = 2,
+             customers = tables[[i]],
+             color = colors[i],
+             table_label = table_order_labels[i])
 }
 
 # Close PDF device
