@@ -20,24 +20,24 @@ library(RColorBrewer)
 node_colors <- brewer.pal(min(length(all_nodes), 8), "Pastel1")
 names(node_colors) <- all_nodes
 
+pdf("examples/unipartite_bnp_nets.pdf", width = 3, height = 2.5)
+par(mar = c(1.5, 0, 0, 0), mgp = c(3, 0.3, 0)) # reduced bottom margin, no left/top/right margins
+
+plot(NA,
+  xlim = c(0.5, n_edges + 0.5), ylim = c(0, 3),
+  xaxt = "n", yaxt = "n", xlab = "", ylab = "", bty = "n", type = "n"
+)
+
 # Plot params
 node_cex <- 5
 get_node_radius <- function(cex) strheight("O", cex = cex)
-node_radius <- get_node_radius(node_cex) / 0.75
+node_radius <- get_node_radius(node_cex)/0.72
 margin <- 0.01
 
 # X positions for edges
 x_pos <- 1:n_edges
 y_top <- 2
 y_bottom <- 0.5
-
-pdf("examples/unipartite_bnp_nets.pdf", width = 3, height = 2.5)
-par(mar = c(2.5, 0, 0, 0)) # reduced bottom margin, no left/top/right margins
-
-plot(NA,
-  xlim = c(0.5, n_edges + 0.5), ylim = c(0, 3),
-  xaxt = "n", yaxt = "n", xlab = "", ylab = "", bty = "n", type = "n"
-)
 
 # Draw edges and nodes
 for (i in seq_len(n_edges)) {
@@ -60,7 +60,10 @@ for (i in seq_len(n_edges)) {
   )
 }
 
-# Add x-axis with edge labels, now nicely close to nodes
-axis(1, at = x_pos, labels = paste("Edge", x_pos))
+# Create expression labels for the axis: Y_1, Y_2, ..., Y_n
+edge_labels <- do.call(expression, lapply(1:n_edges, function(i) bquote(Y[.(i)])))
+
+# Add x-axis without axis line (lwd=0), with expression labels
+axis(1, at = x_pos, labels = edge_labels, lwd = 0)
 
 dev.off()
