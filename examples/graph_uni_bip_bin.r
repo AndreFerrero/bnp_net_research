@@ -9,6 +9,8 @@ g1 <- graph(edges1, directed = FALSE)
 edges2 <- c("A", "B_1", "A", "B_1", "A", "B_2")
 g2 <- graph(edges2, directed = FALSE)
 
+g1_bin <- simplify(g1, remove.multiple = TRUE, remove.loops = TRUE)
+
 # Curved edges
 E(g1)$curved <- curve_multiple(g1)
 E(g2)$curved <- curve_multiple(g2)
@@ -21,19 +23,23 @@ layout_v2 <- matrix(c(0, -1, -1, 1, 1, 1), ncol = 2, byrow = TRUE) # A, B_1, B_2
 layout_v2 <- layout_v2[match(V(g2)$name, c("A", "B_1", "B_2")), ]
 
 # Open PDF
-pdf("examples/uni_vs_bip.pdf", width = 10, height = 5)
-par(mfrow = c(1, 2), mar = c(0.5, 0.5, 2, 0.5))
+pdf("examples/uni_net_example.pdf", width = 5, height = 5)
+par(mar = c(0.5, 0.5, 2, 0.5))
 
 # Plot 1: Unipartite with B–C edge
 plot(
   g1,
   layout = layout_v1,
-  main = "Weighted Unipartite",
   vertex.size = 50,
   vertex.label.cex = 1.5,
   vertex.color = "lightblue",
   vertex.frame.color = "black"
 )
+
+dev.off()
+
+pdf("examples/bip_net_example.pdf", width = 5, height = 5)
+par(mar = c(0.5, 0.5, 2, 0.5))
 
 # Plot 2: Bipartite with B[1], B[2] and shapes
 V(g2)$shape <- ifelse(V(g2)$name == "A", "circle", "square")
@@ -45,11 +51,21 @@ label_expr <- label_expr[match(V(g2)$name, c("A", "B_1", "B_2"))]
 plot(
   g2,
   layout = layout_v2,
-  main = "Weighted Bipartite",
   vertex.size = 50,
   vertex.label = label_expr,
   vertex.label.cex = 1.5,
   vertex.frame.color = "black"
 )
 
+dev.off()
+
+pdf("examples/bin_net_example.pdf", width = 5, height = 5)
+plot(
+  g1_bin,
+  layout = layout_v1,
+  vertex.size = 50,
+  vertex.label.cex = 1.5,
+  vertex.color = "lightblue",
+  vertex.frame.color = "black"
+)
 dev.off()
