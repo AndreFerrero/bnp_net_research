@@ -60,6 +60,8 @@ plot(
 dev.off()
 
 pdf("examples/bin_net_example.pdf", width = 5, height = 5)
+par(mar = c(0.5, 0.5, 2, 0.5))
+
 plot(
   g1_bin,
   layout = layout_v1,
