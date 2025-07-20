@@ -23,7 +23,7 @@ names(colors_A) <- nodes_A
 names(colors_B) <- nodes_B
 
 pdf("examples/bipartite_bnp_nets.pdf", width = 3, height = 2.5)
-par(mar = c(1.5, 0, 0, 0), mgp = c(3, 0.3, 0))  # Bring labels closer
+par(mar = c(1.5, 2, 0, 0.5), mgp = c(3, 0.3, 0))  # Bring labels closer
 
 # Plot canvas
 plot(NA,
@@ -41,6 +41,9 @@ margin <- 0.01
 x_pos <- 1:n_edges
 y_A <- 2
 y_B <- 0.5
+
+text(x = 0, y = y_A - 0.05, labels = expression(G[A]), font = 2, cex = 1.4, xpd = NA)
+text(x = 0, y = y_B , labels = expression(G[B]), font = 2, cex = 1.4, xpd = NA)
 
 # Draw nodes and edges
 for (i in seq_len(n_edges)) {
@@ -69,6 +72,6 @@ for (i in seq_len(n_edges)) {
 edge_labels <- do.call(expression, lapply(1:n_edges, function(i) bquote(Y[.(i)])))
 
 # Add axis (invisible line) with math labels close to plot
-axis(1, at = x_pos, labels = edge_labels, lwd = 0)
+axis(1, at = x_pos, labels = edge_labels, lwd = 0, cex.axis = 1.4)
 
 dev.off()

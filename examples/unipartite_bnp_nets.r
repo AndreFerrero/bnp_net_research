@@ -21,7 +21,7 @@ node_colors <- brewer.pal(min(length(all_nodes), 8), "Pastel1")
 names(node_colors) <- all_nodes
 
 pdf("examples/unipartite_bnp_nets.pdf", width = 3, height = 2.5)
-par(mar = c(1.5, 0, 0, 0), mgp = c(3, 0.3, 0)) # reduced bottom margin, no left/top/right margins
+par(mar = c(1.5, 2, 0, 0.5), mgp = c(3, 0.3, 0)) # reduced bottom margin, no left/top/right margins
 
 plot(NA,
   xlim = c(0.5, n_edges + 0.5), ylim = c(0, 3),
@@ -38,6 +38,9 @@ margin <- 0.01
 x_pos <- 1:n_edges
 y_top <- 2
 y_bottom <- 0.5
+
+# Add "G:" label on the left, centered vertically
+text(x = 0, y = mean(c(y_top, y_bottom)), labels = expression(G), font = 2, cex = 1.4, xpd = NA)
 
 # Draw edges and nodes
 for (i in seq_len(n_edges)) {
@@ -64,6 +67,6 @@ for (i in seq_len(n_edges)) {
 edge_labels <- do.call(expression, lapply(1:n_edges, function(i) bquote(Y[.(i)])))
 
 # Add x-axis without axis line (lwd=0), with expression labels
-axis(1, at = x_pos, labels = edge_labels, lwd = 0)
+axis(1, at = x_pos, labels = edge_labels, lwd = 0, cex.axis = 1.4)
 
 dev.off()
