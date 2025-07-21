@@ -27,7 +27,7 @@ changed_labels <- V(g1)$name != V(g2)$name
 label_colors_g2 <- ifelse(changed_labels, "red", "black")
 
 # --- Plot both graphs ---
-pdf("node_exch.pdf", width = 4, height = 2.5)
+pdf("examples/node_exch.pdf", width = 4, height = 2.5)
 par(mfrow = c(1, 2), mar = c(0, 0, 2, 0))
 
 # Original graph
