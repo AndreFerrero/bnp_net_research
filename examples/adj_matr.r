@@ -17,26 +17,28 @@ adj2 <- adj2[c("A", "B_1", "B_2"), c("A", "B_1", "B_2")]
 col_palette <- colorRampPalette(c("white", "dodgerblue4"))(2)
 
 # Function to plot adjacency matrix nicely with optional expression labels
-plot_adj_matrix <- function(adj, main_title, use_expression_labels = FALSE) {
+
+plot_adj_matrix <- function(adj, use_expression_labels = FALSE) {
   n <- nrow(adj)
+
+  # Use square plot region and clean limits
   image(
     1:n, 1:n, t(adj[n:1, ]),
     col = col_palette,
     axes = FALSE,
     xlab = "", ylab = "",
-    main = main_title,
+    xlim = c(0.5, n + 0.5),
+    ylim = c(0.5, n + 0.5),
     asp = 1
   )
 
-  # Add grid lines between squares
-  abline(h = 0:(n) + 0.5, v = 0:(n) + 0.5, col = "grey80")
+  # Grid lines exactly between cells
+  abline(h = 0.5:(n + 0.5), v = 0.5:(n + 0.5), col = "grey80")
 
-  # Axis labels: use expressions if requested
+  # Axis labels — placed exactly in center
   if (use_expression_labels) {
-    # Correctly define expression vector
     x_labels <- c(expression(A), expression(B[1]), expression(B[2]))
     y_labels <- rev(x_labels)
-
     axis(1, at = 1:n, labels = x_labels, tick = FALSE, las = 2, cex.axis = 1.2)
     axis(2, at = 1:n, labels = y_labels, tick = FALSE, las = 2, cex.axis = 1.2)
   } else {
@@ -44,7 +46,7 @@ plot_adj_matrix <- function(adj, main_title, use_expression_labels = FALSE) {
     axis(2, at = 1:n, labels = rev(rownames(adj)), tick = FALSE, las = 2, cex.axis = 1.2)
   }
 
-  # Add numeric labels inside squares
+  # Numeric labels inside matrix
   for (i in 1:n) {
     for (j in 1:n) {
       val <- adj[i, j]
@@ -55,11 +57,14 @@ plot_adj_matrix <- function(adj, main_title, use_expression_labels = FALSE) {
   }
 }
 
-# Plot both side by side in PDF
-pdf("examples/adj_matr.pdf", width = 8, height = 4)
-par(mfrow = c(1, 2), mar = c(5, 5, 4, 2))
+# Unipartite
+pdf("examples/adj_matr_uni.pdf", width = 3.5, height = 3.5)
+par(mar = c(3, 3, 1, 1)) # tight margins, no clipping
+plot_adj_matrix(adj1, use_expression_labels = FALSE)
+dev.off()
 
-plot_adj_matrix(adj1, "Adjacency: Unipartite", use_expression_labels = FALSE)
-plot_adj_matrix(adj2, "Adjacency: Bipartite", use_expression_labels = TRUE)
-
+# Bipartite
+pdf("examples/adj_matr_bip.pdf", width = 3.5, height = 3.5)
+par(mar = c(3, 3, 1, 1)) # consistent margins
+plot_adj_matrix(adj2, use_expression_labels = TRUE)
 dev.off()
