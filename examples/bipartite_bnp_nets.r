@@ -23,7 +23,7 @@ names(colors_A) <- nodes_A
 names(colors_B) <- nodes_B
 
 pdf("examples/bipartite_bnp_nets.pdf", width = 3, height = 2.5)
-par(mar = c(1.5, 2, 0, 0.5), mgp = c(3, 0.3, 0))  # Bring labels closer
+par(mar = c(1.5, 2, 0, 0.5), mgp = c(3, 0.3, 0)) # Bring labels closer
 
 # Plot canvas
 plot(NA,
@@ -34,7 +34,7 @@ plot(NA,
 # Plot params
 node_cex <- 5
 get_node_radius <- function(cex) strheight("O", cex = cex)
-node_radius <- get_node_radius(node_cex) / 0.71
+node_radius <- get_node_radius(node_cex) / 0.72
 margin <- 0.01
 
 # X positions for edges
@@ -43,7 +43,7 @@ y_A <- 2
 y_B <- 0.5
 
 text(x = 0, y = y_A - 0.05, labels = expression(G[A]), font = 2, cex = 1.4, xpd = NA)
-text(x = 0, y = y_B , labels = expression(G[B]), font = 2, cex = 1.4, xpd = NA)
+text(x = 0, y = y_B, labels = expression(G[B]), font = 2, cex = 1.4, xpd = NA)
 
 # Draw nodes and edges
 for (i in seq_len(n_edges)) {
@@ -62,8 +62,8 @@ for (i in seq_len(n_edges)) {
 
   # Edge line
   segments(
-    x0 = x, y0 = y_A - node_radius + margin,
-    x1 = x, y1 = y_B + node_radius - margin,
+    x0 = x, y0 = y_A - node_radius - margin,
+    x1 = x, y1 = y_B + node_radius,
     lwd = 2, col = "black"
   )
 }
