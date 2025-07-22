@@ -13,15 +13,7 @@ g1 <- graph_from_data_frame(edges, directed = FALSE)
 # Define edge colors and permutation
 edge_colors <- c("red", "blue", "green")
 edge_labels <- c("1", "2", "3")
-
-# Permute edges: move first edge to the end
-new_order <- c(2, 3, 1)
-edges_perm <- edges[new_order, ]
-edge_colors_perm <- edge_colors[new_order]
-edge_labels_perm <- edge_labels[new_order]
-
-# Create permuted-edge graph (same structure)
-g2 <- graph_from_data_frame(edges_perm, directed = FALSE)
+edge_labels_perm <- c("3", "2", "1")
 
 # Use same layout for both graphs
 layout <- layout_with_fr(g1)
@@ -64,7 +56,6 @@ compute_edge_label_positions <- function(graph, layout, d = 0.15) {
 }
 
 pos_g1 <- compute_edge_label_positions(g1, layout)
-pos_g2 <- compute_edge_label_positions(g2, layout)
 
 # Expand plot limits
 expand_limits <- function(layout, ELx, ELy, margin = 0.1) {
@@ -80,7 +71,6 @@ expand_limits <- function(layout, ELx, ELy, margin = 0.1) {
 }
 
 lims_g1 <- expand_limits(layout, pos_g1$x, pos_g1$y)
-lims_g2 <- expand_limits(layout, pos_g2$x, pos_g2$y)
 
 # Define small margins
 small_margins <- c(0.5, 0, 0.5, 0)
@@ -107,26 +97,24 @@ plot(g1,
 )
 dev.off()
 
-layout_g2 <- layout[match(V(g2)$name, rownames(layout)), ]
-
 # Plot permuted edge-labeled graph
 pdf("examples/edge_exch_g2.pdf", width = 4, height = 2.5)
 par(mar = small_margins)
-plot(g2,
-  layout = layout_g2,
-  vertex.label = V(g2)$name,
+plot(g1,
+  layout = layout,
+  vertex.label = V(g1)$name,
   vertex.label.color = "black",
   vertex.color = "gray90",
   vertex.size = 30,
   edge.label = edge_labels_perm,
   edge.label.cex = 1.2,
-  edge.color = edge_colors_perm,
+  edge.color = edge_colors,
   edge.label.color = "black",
   rescale = FALSE,
-  xlim = lims_g2$xlim,
-  ylim = lims_g2$ylim,
-  edge.label.x = pos_g2$x,
-  edge.label.y = pos_g2$y,
+  xlim = lims_g1$xlim,
+  ylim = lims_g1$ylim,
+  edge.label.x = pos_g1$x,
+  edge.label.y = pos_g1$y,
   main = NA
 )
 dev.off()
