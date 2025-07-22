@@ -36,12 +36,12 @@ plot_adj_matrix <- function(adj, use_expression_labels = FALSE, palette = col_pa
   abline(h = 0.5:(n + 0.5), v = 0.5:(n + 0.5), col = "grey80")
 
   if (use_expression_labels) {
-    x_labels <- c(expression(A), expression(B[1]), expression(B[2]))
+    x_labels <- c(expression(A[phantom(1)]), expression(B[1]), expression(B[2]))
     y_labels <- rev(x_labels)
-    axis(1, at = 1:n, labels = x_labels, tick = FALSE, las = 2, cex.axis = 1.2)
+    axis(1, at = 1:n, labels = x_labels, tick = FALSE, cex.axis = 1.2)
     axis(2, at = 1:n, labels = y_labels, tick = FALSE, las = 2, cex.axis = 1.2)
   } else {
-    axis(1, at = 1:n, labels = colnames(adj), tick = FALSE, las = 2, cex.axis = 1.2)
+    axis(1, at = 1:n, labels = colnames(adj), tick = FALSE, cex.axis = 1.2)
     axis(2, at = 1:n, labels = rev(rownames(adj)), tick = FALSE, las = 2, cex.axis = 1.2)
   }
 
