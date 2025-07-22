@@ -14,17 +14,18 @@ adj1 <- adj1[c("A", "B", "C"), c("A", "B", "C")]
 adj2 <- adj2[c("A", "B_1", "B_2"), c("A", "B_1", "B_2")]
 
 # Custom colors: white (no edge) to blue (edge)
-col_palette <- colorRampPalette(c("white", "dodgerblue4"))(2)
+col_palette_blue <- colorRampPalette(c("white", "dodgerblue4"))(2)
+col_palette_orange <- colorRampPalette(c("white", "darkorange3"))(2)
+
 
 # Function to plot adjacency matrix nicely with optional expression labels
 
-plot_adj_matrix <- function(adj, use_expression_labels = FALSE) {
+plot_adj_matrix <- function(adj, use_expression_labels = FALSE, palette = col_palette_blue) {
   n <- nrow(adj)
 
-  # Use square plot region and clean limits
   image(
     1:n, 1:n, t(adj[n:1, ]),
-    col = col_palette,
+    col = palette,
     axes = FALSE,
     xlab = "", ylab = "",
     xlim = c(0.5, n + 0.5),
@@ -32,10 +33,8 @@ plot_adj_matrix <- function(adj, use_expression_labels = FALSE) {
     asp = 1
   )
 
-  # Grid lines exactly between cells
   abline(h = 0.5:(n + 0.5), v = 0.5:(n + 0.5), col = "grey80")
 
-  # Axis labels — placed exactly in center
   if (use_expression_labels) {
     x_labels <- c(expression(A), expression(B[1]), expression(B[2]))
     y_labels <- rev(x_labels)
@@ -46,7 +45,6 @@ plot_adj_matrix <- function(adj, use_expression_labels = FALSE) {
     axis(2, at = 1:n, labels = rev(rownames(adj)), tick = FALSE, las = 2, cex.axis = 1.2)
   }
 
-  # Numeric labels inside matrix
   for (i in 1:n) {
     for (j in 1:n) {
       val <- adj[i, j]
@@ -57,14 +55,15 @@ plot_adj_matrix <- function(adj, use_expression_labels = FALSE) {
   }
 }
 
-# Unipartite
+
+# Unipartite: blue
 pdf("examples/adj_matr_uni.pdf", width = 3.5, height = 3.5)
-par(mar = c(3, 3, 1, 1)) # tight margins, no clipping
-plot_adj_matrix(adj1, use_expression_labels = FALSE)
+par(mar = c(3, 3, 1, 1))
+plot_adj_matrix(adj1, use_expression_labels = FALSE, palette = col_palette_blue)
 dev.off()
 
-# Bipartite
+# Bipartite: orange
 pdf("examples/adj_matr_bip.pdf", width = 3.5, height = 3.5)
-par(mar = c(3, 3, 1, 1)) # consistent margins
-plot_adj_matrix(adj2, use_expression_labels = TRUE)
+par(mar = c(3, 3, 1, 1))
+plot_adj_matrix(adj2, use_expression_labels = TRUE, palette = col_palette_orange)
 dev.off()
