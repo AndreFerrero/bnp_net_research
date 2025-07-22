@@ -89,42 +89,44 @@ small_margins <- c(0.5, 0, 0.5, 0)
 pdf("examples/edge_exch_g1.pdf", width = 4, height = 2.5)
 par(mar = small_margins)
 plot(g1,
-     layout = layout,
-     vertex.label = V(g1)$name,
-     vertex.label.color = "black",
-     vertex.color = "gray90",
-     vertex.size = 30,
-     edge.label = edge_labels,
-     edge.label.cex = 1.2,
-     edge.color = edge_colors,
-     edge.label.color = "black",
-     rescale = FALSE,
-     xlim = lims_g1$xlim,
-     ylim = lims_g1$ylim,
-     edge.label.x = pos_g1$x,
-     edge.label.y = pos_g1$y,
-     main = NA
+  layout = layout,
+  vertex.label = V(g1)$name,
+  vertex.label.color = "black",
+  vertex.color = "gray90",
+  vertex.size = 30,
+  edge.label = edge_labels,
+  edge.label.cex = 1.2,
+  edge.color = edge_colors,
+  edge.label.color = "black",
+  rescale = FALSE,
+  xlim = lims_g1$xlim,
+  ylim = lims_g1$ylim,
+  edge.label.x = pos_g1$x,
+  edge.label.y = pos_g1$y,
+  main = NA
 )
 dev.off()
+
+layout_g2 <- layout[match(V(g2)$name, rownames(layout)), ]
 
 # Plot permuted edge-labeled graph
 pdf("examples/edge_exch_g2.pdf", width = 4, height = 2.5)
 par(mar = small_margins)
 plot(g2,
-     layout = layout,
-     vertex.label = V(g2)$name,
-     vertex.label.color = "black",
-     vertex.color = "gray90",
-     vertex.size = 30,
-     edge.label = edge_labels_perm,
-     edge.label.cex = 1.2,
-     edge.color = edge_colors_perm,
-     edge.label.color = "black",
-     rescale = FALSE,
-     xlim = lims_g2$xlim,
-     ylim = lims_g2$ylim,
-     edge.label.x = pos_g2$x,
-     edge.label.y = pos_g2$y,
-     main = NA
+  layout = layout_g2,
+  vertex.label = V(g2)$name,
+  vertex.label.color = "black",
+  vertex.color = "gray90",
+  vertex.size = 30,
+  edge.label = edge_labels_perm,
+  edge.label.cex = 1.2,
+  edge.color = edge_colors_perm,
+  edge.label.color = "black",
+  rescale = FALSE,
+  xlim = lims_g2$xlim,
+  ylim = lims_g2$ylim,
+  edge.label.x = pos_g2$x,
+  edge.label.y = pos_g2$y,
+  main = NA
 )
 dev.off()
