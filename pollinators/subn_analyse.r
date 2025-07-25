@@ -329,7 +329,7 @@ overlay_plot <- ggplot(bf_long, aes(x = pct, y = log10BF)) +
     y = expression(log[10](BF))
   ) +
   scale_x_continuous(breaks = unique(bf_long$pct), expand = c(0.01, 0)) +
-  scale_y_continuous(breaks = seq(-0.5, 2.5, by = 0.5), limits = c(-0.5, 2.5), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = y_ticks_both, limits = c(-0.5, 2.5), expand = c(0, 0)) +
   theme_minimal() +
   theme(
     legend.position = "top",
