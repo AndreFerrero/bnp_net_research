@@ -106,20 +106,33 @@ for (p in percentages) {
 
   # Compute Bayes Factors for all deltas
   for (delta in delta_values) {
-    post0 <- mean(draws_df$sigma_A < delta)
-    post1 <- mean(draws_df$sigma_A > delta)
+    # Posterior probabilities
+    post0A <- mean(draws_df$sigma_A < delta)
+    post1A <- mean(draws_df$sigma_A > delta)
+    post0B <- mean(draws_df$sigma_B < delta)
+    post1B <- mean(draws_df$sigma_B > delta)
+
+    # Prior (same for both groups)
     prior0 <- pbeta(delta, 1, 1)
     prior1 <- 1 - prior0
-    bf <- (post0 / post1) * (prior1 / prior0)
-    log10_bf <- log10(bf)
 
+    # Bayes Factors
+    bf_A <- (post0A / post1A) * (prior1 / prior0)
+    log10_bf_A <- log10(bf_A)
+
+    bf_B <- (post0B / post1B) * (prior1 / prior0)
+    log10_bf_B <- log10(bf_B)
+
+    # Store all
     bf_all_deltas <- bind_rows(
       bf_all_deltas,
       tibble(
-        pct     = 100 * p,
-        delta   = delta,
-        BF      = bf,
-        log10BF = log10_bf
+        pct        = 100 * p,
+        delta      = delta,
+        BF_A       = bf_A,
+        log10BF_A  = log10_bf_A,
+        BF_B       = bf_B,
+        log10BF_B  = log10_bf_B
       )
     )
   }
@@ -199,47 +212,59 @@ for (delta in delta_values) {
 
 # ---- Combined Bayes Factor plot with fixed y-axis limits ----
 library(viridis)
+y_ticks_A <- c(0, 0.5, 1, 2)
 
-bf_combined_plot <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF)) +
-  geom_line(aes(linetype = factor(delta), group = factor(delta)), color = "black") + # solid black lines with different linetypes
-  geom_point(aes(color = factor(pct))) + # points colored by pct
-  scale_color_viridis_d(
-    option = "B",
-    end = 0.9,
-    direction = -1,
-    guide = "none" # hides the colour legend entirely
-  ) +
-  scale_linetype_manual(
-    values = c("solid", "dashed", "dotted"),
-    name = expression(delta)
-  ) +
+# Combined Bayes Factor plot — Group A
+bf_combined_plot_A <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF_A)) +
+  geom_line(aes(linetype = factor(delta), group = factor(delta)), color = "black") +
+  geom_point(aes(color = factor(pct))) +
+  scale_color_viridis_d(option = "B", end = 0.9, direction = -1, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"), name = expression(delta)) +
   labs(
     x = "sample size (%)",
-    y = expression(log[10](BF))
+    y = expression(log[10](BF)),
+    title = expression("Bayes factor for" ~ sigma[A])
   ) +
-  annotate("rect",
-    xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf,
-    alpha = 0.1, fill = "gray50"
-  ) +
-  scale_x_continuous(
-    breaks = unique(bf_all_deltas$pct),
-    expand = c(0.01, 0)
-  ) +
-  scale_y_continuous(
-    breaks = y_ticks,
-    limits = c(0, 2.5),
-    expand = c(0.01, 0)
-  ) +
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "gray50") +
+  scale_x_continuous(breaks = unique(bf_all_deltas$pct), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = y_ticks_A, limits = c(0, 2.5), expand = c(0.01, 0)) +
   theme_minimal() +
   theme(
     legend.position = "top",
     legend.direction = "horizontal",
-    panel.grid.minor.x = element_blank(),
-    panel.grid.minor.y = element_blank()
+    panel.grid.minor = element_blank()
   )
 
 ggsave(
-  here(plots_dir, "bayes_factor_all_deltas_col.pdf"),
-  bf_combined_plot,
+  here(plots_dir, "bayes_factor_all_deltas_groupA.pdf"),
+  bf_combined_plot_A,
+  width = 7, height = 4
+)
+
+y_ticks_B <- c(-0.5, 0, 0.5, 1)
+
+# Combined Bayes Factor plot — Group B
+bf_combined_plot_B <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF_B)) +
+  geom_line(aes(linetype = factor(delta), group = factor(delta)), color = "black") +
+  geom_point(aes(color = factor(pct))) +
+  scale_color_viridis_d(option = "B", end = 0.9, direction = -1, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"), name = expression(delta)) +
+  labs(
+    x = "sample size (%)",
+    y = expression(log[10](BF)),
+    title = expression("Bayes factor for" ~ sigma[B])
+  ) +
+  scale_x_continuous(breaks = unique(bf_all_deltas$pct), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = y_ticks_B, limits = c(-0.5, 1), expand = c(0.01, 0)) +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal",
+    panel.grid.minor = element_blank()
+  )
+
+ggsave(
+  here(plots_dir, "bayes_factor_all_deltas_groupB.pdf"),
+  bf_combined_plot_B,
   width = 7, height = 4
 )
