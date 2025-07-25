@@ -212,28 +212,40 @@ for (delta in delta_values) {
 
 # ---- Combined Bayes Factor plot with fixed y-axis limits ----
 library(viridis)
-y_ticks_A <- c(0, 0.5, 1, 2)
+y_ticks_A <- c(-0.5, 0, 0.5, 1, 2)
+
+# Background bands for log10BF interpretation
+evidence_bands <- tibble(
+  ymin = c(-Inf, 0, 0.5, 1, 2),
+  ymax = c(0, 0.5, 1, 2, Inf),
+  fill = c("#fddede", "#eeeeee", "#cce5ff", "#99ccff", "#6699cc") # red, gray, light blue, blue, dark blue
+)
 
 # Combined Bayes Factor plot — Group A
 bf_combined_plot_A <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF_A)) +
+  geom_rect(
+    data = evidence_bands,
+    aes(xmin = -Inf, xmax = Inf, ymin = ymin, ymax = ymax, fill = I(fill)),
+    inherit.aes = FALSE,
+    alpha = 0.3
+  ) +
   geom_line(aes(linetype = factor(delta), group = factor(delta)), color = "black") +
   geom_point(aes(color = factor(pct))) +
   scale_color_viridis_d(option = "B", end = 0.9, direction = -1, guide = "none") +
   scale_linetype_manual(values = c("solid", "dashed", "dotted"), name = expression(delta)) +
   labs(
     x = "sample size (%)",
-    y = expression(log[10](BF)),
-    title = expression("Bayes factor for" ~ sigma[A])
+    y = expression(log[10](BF))
   ) +
-  annotate("rect", xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "gray50") +
   scale_x_continuous(breaks = unique(bf_all_deltas$pct), expand = c(0.01, 0)) +
-  scale_y_continuous(breaks = y_ticks_A, limits = c(0, 2.5), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = y_ticks_A, limits = c(0, 2.5), expand = c(0, 0)) +
   theme_minimal() +
   theme(
     legend.position = "top",
     legend.direction = "horizontal",
     panel.grid.minor = element_blank()
   )
+
 
 ggsave(
   here(plots_dir, "bayes_factor_all_deltas_groupA.pdf"),
@@ -245,17 +257,22 @@ y_ticks_B <- c(-0.5, 0, 0.5, 1)
 
 # Combined Bayes Factor plot — Group B
 bf_combined_plot_B <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF_B)) +
+  geom_rect(
+    data = evidence_bands,
+    aes(xmin = -Inf, xmax = Inf, ymin = ymin, ymax = ymax, fill = I(fill)),
+    inherit.aes = FALSE,
+    alpha = 0.3
+  ) +
   geom_line(aes(linetype = factor(delta), group = factor(delta)), color = "black") +
   geom_point(aes(color = factor(pct))) +
   scale_color_viridis_d(option = "B", end = 0.9, direction = -1, guide = "none") +
   scale_linetype_manual(values = c("solid", "dashed", "dotted"), name = expression(delta)) +
   labs(
     x = "sample size (%)",
-    y = expression(log[10](BF)),
-    title = expression("Bayes factor for" ~ sigma[B])
+    y = expression(log[10](BF))
   ) +
   scale_x_continuous(breaks = unique(bf_all_deltas$pct), expand = c(0.01, 0)) +
-  scale_y_continuous(breaks = y_ticks_B, limits = c(-0.5, 1), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = y_ticks_B, limits = c(-0.5, 1), expand = c(0, 0)) +
   theme_minimal() +
   theme(
     legend.position = "top",
