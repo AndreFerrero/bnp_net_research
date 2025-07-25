@@ -14,8 +14,8 @@ adj1 <- adj1[c("A", "B", "C"), c("A", "B", "C")]
 adj2 <- adj2[c("A", "B_1", "B_2"), c("A", "B_1", "B_2")]
 
 # Custom colors: white (no edge) to blue (edge)
-col_palette_blue <- colorRampPalette(c("white", "dodgerblue4"))(2)
-col_palette_orange <- colorRampPalette(c("white", "darkorange3"))(2)
+col_palette_blue <- colorRampPalette(c("white", "lightblue", "dodgerblue4"))(3)
+col_palette_orange <- colorRampPalette(c("white", "orange", "darkorange3"))(3)
 
 
 # Function to plot adjacency matrix nicely with optional expression labels
@@ -33,7 +33,7 @@ plot_adj_matrix <- function(adj, use_expression_labels = FALSE, palette = col_pa
     asp = 1
   )
 
-  abline(h = 0.5:(n + 0.5), v = 0.5:(n + 0.5), col = "grey80")
+  abline(h = 0.5:(n + 0.5), v = 0.5:(n + 0.5), col = "darkgrey")
 
   if (use_expression_labels) {
     x_labels <- c(expression(A[phantom(1)]), expression(B[1]), expression(B[2]))
