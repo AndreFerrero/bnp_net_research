@@ -211,6 +211,7 @@ for (delta in delta_values) {
 }
 
 # ---- Combined Bayes Factor plot with fixed y-axis limits ----
+y_ticks_both <- c(-0.5, 0, 0.5, 1, 2)
 library(viridis)
 y_ticks_A <- c(-0.5, 0, 0.5, 1, 2)
 
@@ -238,7 +239,7 @@ bf_combined_plot_A <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF_A)) +
     y = expression(log[10](BF))
   ) +
   scale_x_continuous(breaks = unique(bf_all_deltas$pct), expand = c(0.01, 0)) +
-  scale_y_continuous(breaks = y_ticks_A, limits = c(0, 2.5), expand = c(0, 0)) +
+  scale_y_continuous(breaks = y_ticks_both, limits = c(-0.5, 2.5), expand = c(0, 0)) +
   theme_minimal() +
   theme(
     legend.position = "top",
@@ -272,7 +273,7 @@ bf_combined_plot_B <- ggplot(bf_all_deltas, aes(x = pct, y = log10BF_B)) +
     y = expression(log[10](BF))
   ) +
   scale_x_continuous(breaks = unique(bf_all_deltas$pct), expand = c(0.01, 0)) +
-  scale_y_continuous(breaks = y_ticks_B, limits = c(-0.5, 1), expand = c(0, 0)) +
+  scale_y_continuous(breaks = y_ticks_both, limits = c(-0.5, 2.5), expand = c(0, 0)) +
   theme_minimal() +
   theme(
     legend.position = "top",
@@ -284,4 +285,60 @@ ggsave(
   here(plots_dir, "bayes_factor_all_deltas_groupB.pdf"),
   bf_combined_plot_B,
   width = 7, height = 4
+)
+
+bf_long <- bf_all_deltas %>%
+  pivot_longer(
+    cols = starts_with("log10BF_"),
+    names_to = "group",
+    names_prefix = "log10BF_",
+    values_to = "log10BF"
+  ) %>%
+  mutate(
+    group = recode(group,
+      "A" = "sigma[A]",
+      "B" = "sigma[B]"
+    )
+  )
+
+overlay_plot <- ggplot(bf_long, aes(x = pct, y = log10BF)) +
+  # Background bands
+  geom_rect(
+    data = evidence_bands,
+    aes(xmin = -Inf, xmax = Inf, ymin = ymin, ymax = ymax, fill = I(fill)),
+    inherit.aes = FALSE,
+    alpha = 0.3
+  ) +
+  # Line per group/delta
+  geom_line(aes(linetype = factor(delta), color = group, group = interaction(group, delta)), linewidth = 0.5) +
+  geom_point(aes(color = group)) +
+  scale_color_manual(
+    values = c(
+      "sigma[A]" = "#238b45", # purple
+      "sigma[B]" = "#d95f02" # orange
+    ),
+    labels = c(expression(sigma[A]), expression(sigma[B])),
+    name = NULL
+  ) +
+  scale_linetype_manual(
+    values = c("solid", "dashed", "dotted"),
+    name = expression(delta)
+  ) +
+  labs(
+    x = "sample size (%)",
+    y = expression(log[10](BF))
+  ) +
+  scale_x_continuous(breaks = unique(bf_long$pct), expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = seq(-0.5, 2.5, by = 0.5), limits = c(-0.5, 2.5), expand = c(0.01, 0)) +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    legend.direction = "horizontal",
+    panel.grid.minor = element_blank()
+  )
+
+ggsave(
+  here(plots_dir, "bayes_factor_all_deltas_both.pdf"),
+  overlay_plot,
+  width = 8, height = 5
 )
