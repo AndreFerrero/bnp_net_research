@@ -29,8 +29,6 @@ data {
   vector<lower=0>[2] prior_alpha_B;
   vector<lower=0>[2] prior_sigma_A;
   vector<lower=0>[2] prior_sigma_B;
-  
-  int<lower=1> e_obs; // observed edges
 }
 parameters {
   real<lower=0> alpha_A;
