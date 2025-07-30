@@ -1,4 +1,4 @@
-library(rstan)
+library(here)
 library(bayesplot)
 library(ggplot2)
 library(here)
@@ -7,13 +7,6 @@ library(posterior)
 
 poll_dir <- here("pollinators/mpl025")
 
-wo_repl_dir <- here(poll_dir, "wo_repl")
-plots_dir <- here(wo_repl_dir, "unif_plots")
-fits_dir <- here(wo_repl_dir, "unif_fit")
-
-# IMPORT DATA
-# Read the CSV file
-# (Change the file path to where you've saved your file)
 data <- read.csv(here(poll_dir, "M_PL_025.csv"),
   check.names = FALSE, row.names = 1
 )
@@ -38,49 +31,43 @@ poll <- edges |>
 
 (d_obs <- nrow(edges) / (nrow(plant) * nrow(poll)))
 
-
-(total_weight <- sum(edges$weight))
-(binary_weight <- nrow(edges))
-
-# ESTIMATION
-
 options(
   mc.cores = parallel::detectCores(),
   rstan.auto_write = TRUE
 )
 
 stan_folder <- here("code", "stan")
-unif_ppc_path <- here(stan_folder, "unif_ppc.stan")
-unif_ppc_mod <- stan_model(file = unif_ppc_path)
+ppc_path <- here(stan_folder, "basic_ppc.stan")
+ppc_mod <- stan_model(file = ppc_path)
 
-unif_ppc_data <- list(
+data <- list(
   K_A = nrow(plant),
   K_B = nrow(poll),
   n_A = plant$counts,
   n_B = poll$counts,
   prior_alpha_A = c(3, 0.4),
   prior_alpha_B = c(3, 0.4),
-  eps = 0.1,
+  prior_sigma_A = c(1.5, 3),
+  prior_sigma_B = c(1.5, 3),
   e_obs = sum(edges$weight)
 )
 
 # Fit model
-unif_ppc_fit <- sampling(
-  object = unif_ppc_mod,
-  data = unif_ppc_data,
+fit <- sampling(
+  object = ppc_mod,
+  data   = data,
   chains = 4,
-  iter = 20000,
+  iter   = 5000,
   warmup = 1000,
-  seed = 42,
-  thin = 10,
-  control = list(adapt_delta = 0.999)
+  seed   = 42,
 )
 
-# save(unif_ppc_fit, file = here(poll_dir, "full_unif_ppc_fit.Rdata"))
+save(fit, file = here(poll_dir, "weak_fit.Rdata"))
 
-# LOAD MODEL FIT
-load(here(fits_dir, "unif_ppc_fit_100pct.Rdata"))
-## Nice full ppc plot ####
+mcmc_acf(fit)
+mcmc_trace(fit)
+mcmc_dens(fit)
+
 summary(fit)$summary
 
 draws_df <- as_draws_df(fit)
@@ -182,52 +169,3 @@ if (nrow(tail_bars) > 0) {
       min.segment.length = 5
     )
 }
-
-ggsave(
-  here(plots_dir, "full_ppc.pdf"),
-  ppc_plot,
-  width = 7, height = 4
-)
-
-# For plotting parsing
-param_labels <- c(
-  alpha_A = "alpha[A]", alpha_B = "alpha[B]",
-  sigma_A = "sigma[A]", sigma_B = "sigma[B]"
-)
-
-# ACF plot
-acf_plot <- mcmc_acf(fit,
-  pars = names(param_labels),
-  facet_args = list(labeller = ggplot2::labeller(
-    .default = label_parsed,
-    .cols = param_labels
-  ))
-) +
-  consistent_theme +
-  hline_at(0.2, linetype = 2, size = 0.15, color = "gray") +
-  scale_y_continuous(breaks = c(0.2))
-
-ggsave(
-  filename = here(plots_dir, "full_acf.pdf"),
-  acf_plot,
-  width = 7, height = 4
-)
-
-# Trace plot
-trace_plot <- mcmc_trace(fit,
-  pars = names(param_labels),
-  facet_args = list(
-    nrow = 2,
-    labeller = ggplot2::labeller(
-      .default = label_parsed,
-      .cols = param_labels
-    )
-  )
-) +
-  consistent_theme
-
-ggsave(
-  filename = here(plots_dir, "full_trace.pdf"),
-  trace_plot,
-  width = 7, height = 4
-)
