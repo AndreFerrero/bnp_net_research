@@ -34,7 +34,7 @@ prior_samples_unif <- replicate(n_prior_sims, {
   alpha <- sample_prior_alpha()
   sigma <- sample_prior_sigma_unif()
 
-  net <- sample_net(N = 2000, alpha = alpha, sigma = sigma)
+  net <- sample_net(N = 2225, alpha = alpha, sigma = sigma)
 
   nrow(unique(net$edges)) / (net$xA$K * net$xB$K)
 })
