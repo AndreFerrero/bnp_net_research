@@ -20,7 +20,7 @@ pollinators <- unique(full_edges$pollinator)
 
 nodes <- tibble(
   name = c(plants, pollinators),
-  type = c(rep(FALSE, length(plants)), rep(TRUE, length(pollinators)))
+  type = c(rep(TRUE, length(plants)), rep(FALSE, length(pollinators)))
 )
 
 graph <- graph_from_data_frame(full_edges, vertices = nodes, directed = FALSE)
@@ -52,8 +52,8 @@ V(graph)$degree <- degree(graph, mode = "all")
 layout <- layout_as_bipartite(graph)
 
 # Identify node groups
-plant_ids <- which(V(graph)$type == FALSE)
-pollinator_ids <- which(V(graph)$type == TRUE)
+plant_ids <- which(V(graph)$type == TRUE)
+pollinator_ids <- which(V(graph)$type == FALSE)
 
 # Get range of original x positions for plants and pollinators
 plant_x_range <- range(layout[plant_ids, 1])
@@ -105,27 +105,26 @@ graph_plot <- ggplot() +
     size = 4
   ) +
   scale_size(range = c(2, 6)) +
-  scale_y_continuous(expand = expansion(mult = c(0.6, 0.65))) +
+  scale_y_continuous(expand = expansion(mult = c(0.5, 0.5))) +
   coord_flip() +
   theme_void() +
   theme(legend.position = "none")
 
 # Get x (vertical) max position to place labels slightly above nodes
 max_x <- max(coords$x)
+plants_y <- mean(coords$y[coords$type == TRUE]) - 0.15
+pollinators_y <- mean(coords$y[coords$type == FALSE]) + 0.22
 
-# Compute mean horizontal (y) position for each group
-label_y_plants <- mean(coords$y[coords$type == FALSE])
-label_y_pollinators <- mean(coords$y[coords$type == TRUE])
 
 # Add titles to the plot
 graph_plot <- graph_plot +
   annotate("text",
-    x = max_x + 1.5, y = label_y_plants,
-    label = "Plants", fontface = "bold", size = 5, hjust = -0.9
+    x = max_x + 1.5, y = plants_y,
+    label = "Plants", fontface = "bold", size = 5
   ) +
   annotate("text",
-    x = max_x + 1.5, y = label_y_pollinators,
-    label = "Pollinators", fontface = "bold", size = 5, hjust = 1.2
+    x = max_x + 1.5, y = pollinators_y,
+    label = "Pollinators", fontface = "bold", size = 5
   )
 
 # --- Save -----------------------------------------------------------------
