@@ -11,7 +11,7 @@ options(
   rstan.auto_write = TRUE
 )
 
-set.seed(42)
+set.seed(1234)
 
 # True parameters
 alpha_true <- c(5, 5)
@@ -24,7 +24,7 @@ sigma_values <- list(
 edge_sizes <- c(1e2, 1e3, 1e4, 1e5)
 
 # Stan models
-stan_folder <- here("stan")
+stan_folder <- here("code", "stan")
 mod_path <- here(stan_folder, "basic_model.stan")
 ppc_mod_path <- here(stan_folder, "basic_ppc.stan")
 
@@ -32,7 +32,7 @@ mod <- stan_model(file = mod_path)
 ppc_mod <- stan_model(file = ppc_mod_path)
 
 # Estimation folder
-est_folder <- here("estimation")
+est_folder <- here("code", "estimation")
 
 # Function to prepare data for Stan
 prepare_data <- function(net, include_e_obs = FALSE) {
@@ -51,6 +51,8 @@ prepare_data <- function(net, include_e_obs = FALSE) {
   }
   return(data_list)
 }
+
+ppc <- FALSE
 
 # Simulation loop
 for (n_edges in edge_sizes) {
@@ -78,9 +80,10 @@ for (n_edges in edge_sizes) {
     # Save result
     save_file <- here(est_folder, sprintf("fit_n_%g_sigma_%s.Rdata", n_edges, sigma_label))
     save(fit, file = save_file)
+    rm(fit)
 
-    # Run PPC model only for n = 1e5
-    if (n_edges == 1e5) {
+    # Run PPC model only for n = 1e4
+    if (n_edges == 1e4 & ppc == TRUE) {
       cat(sprintf("Running PPC model for n = %g, sigma = %s\n", n_edges, sigma_label))
 
       # PPC needs e_obs
@@ -93,7 +96,7 @@ for (n_edges in edge_sizes) {
         iter = 5000,
         warmup = 1000,
         seed = 42,
-        thin = 1
+        thin = 2
       )
 
       ppc_save_file <- here(est_folder, sprintf("fit_ppc_n_%g_sigma_%s.Rdata", n_edges, sigma_label))
