@@ -28,7 +28,7 @@ posterior_data <- list()
 
 for (sigma_label in sigma_labels) {
   for (n in edge_sizes) {
-    fname <- sprintf("fit_n_%g_sigma_%s.Rdata", n, sigma_label)
+    fname <- sprintf("fit_subnet_n_%g_sigma_%s.Rdata", n, sigma_label)
     fpath <- here("code", "estimation", fname)
     if (!file.exists(fpath)) next
 
@@ -100,7 +100,7 @@ for (lbl in sigma_labels) {
   df_sub <- posterior_df %>% filter(sigma_label == lbl)
   p <- plot_posteriors(df_sub, lbl)
 
-  out_file <- here("code", "estimation", sprintf("posterior_plot_sigma_%s.pdf", lbl))
+  out_file <- here("code", "estimation", sprintf("subnet_posterior_plot_sigma_%s.pdf", lbl))
   ggsave(out_file, p, width = 10, height = 6, bg = "white")
   message("Saved: ", out_file)
 }
