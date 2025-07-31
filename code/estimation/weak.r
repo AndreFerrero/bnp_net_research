@@ -30,11 +30,13 @@ net_0_07 <- sample_net(1e4,
 
 # Compile Stan model
 stan_folder <- here("stan")
+mod_path <- here(stan_folder, "basic_model.stan")
+mod <- stan_model(file = mod_path)
 ppc_mod_path <- here(stan_folder, "basic_ppc.stan")
 ppc_mod <- stan_model(file = ppc_mod_path)
 
 # Data for Stan
-data_0_02 <- list(
+data_0_02_ppc <- list(
   K_A = net_0_02$xA$K,
   K_B = net_0_02$xB$K,
   n_A = net_0_02$xA$active_counts,
@@ -46,7 +48,7 @@ data_0_02 <- list(
   e_obs = nrow(net_0_02$edges)
 )
 
-data_0_07 <- list(
+data_0_07_ppc <- list(
   K_A = net_0_07$xA$K,
   K_B = net_0_07$xB$K,
   n_A = net_0_07$xA$active_counts,
@@ -59,11 +61,11 @@ data_0_07 <- list(
 )
 
 # Fit the model
-fit_0_02 <- sampling(
+fit_0_02_ppc <- sampling(
   object = ppc_mod,
   data = data_0_02,
   chains = 4,
-  iter = 4000,
+  iter = 5000,
   warmup = 1000,
   seed = 42,
   thin = 1
@@ -71,11 +73,11 @@ fit_0_02 <- sampling(
 check_hmc_diagnostics(fit_0_02)
 
 
-fit_0_07 <- sampling(
+fit_0_07_ppc <- sampling(
   object = ppc_mod,
   data = data_0_07,
   chains = 4,
-  iter = 4000,
+  iter = 5000,
   warmup = 1000,
   seed = 42,
   thin = 1
