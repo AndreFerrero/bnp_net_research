@@ -1,3 +1,6 @@
+# This script simulates one single full network and then
+# estimates the basic model on subnets of different sizes.
+
 library(rstan)
 library(here)
 

@@ -1,3 +1,6 @@
+# This script simulates networks of different sizes
+# and estimates the basic model on them.
+
 library(rstan)
 library(here)
 
