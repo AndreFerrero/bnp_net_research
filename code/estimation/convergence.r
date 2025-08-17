@@ -120,7 +120,8 @@ p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat, color = `S
     labels = parse(text = levels(factor(plot_data_agg$`Simulation Setup`)))
   ) +
   common_theme +
-  theme(legend.position = "top")
+  theme(legend.position = "top") +
+  guides(color = guide_legend(override.aes = list(linetype = 0)))
 
 
 # Bulk ESS Distribution Plot (no title/subtitle)
