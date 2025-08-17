@@ -71,7 +71,7 @@ plot_posteriors <- function(df, sigma_lbl) {
     )
 
   ggplot(df, aes(x = value, colour = factor(n_edges))) +
-    geom_density(size = 0.5) +
+    geom_density(size = 0.5, key_glyph = "path") +  # <- force legend as lines
     geom_vline(aes(xintercept = true_value),
       linetype = "dashed", colour = "red"
     ) +
@@ -86,7 +86,10 @@ plot_posteriors <- function(df, sigma_lbl) {
       end = 0.9,
       direction = -1,
       name = "Sample size (edges)",
-      labels = function(x) parse(text = paste0("10^", log10(as.numeric(x))))
+      labels = function(x) parse(text = paste0("10^", log10(as.numeric(x)))), # scientific labels
+      guide = guide_legend(
+        override.aes = list(linetype = 1, shape = NA, fill = NA)  # line only
+      )
     ) +
     theme_minimal(base_size = 14) +
     theme(
