@@ -102,12 +102,14 @@ plot_posteriors <- function(df, sigma_lbl) {
 # –– 5) Save one plot per sigma
 for (lbl in sigma_labels) {
   df_sub <- posterior_df %>% filter(sigma_label == lbl)
-  p <- plot_posteriors(df_sub, lbl)
-
+  p <- plot_posteriors(df_sub, lbl) +
+    theme(legend.position = "none")   # remove legend
+  
   out_file <- here("code", "estimation", sprintf("subnet_posterior_plot_sigma_%s.pdf", lbl))
   ggsave(out_file, p, width = 10, height = 6, bg = "white")
   message("Saved: ", out_file)
 }
+
 
 library(patchwork)
 
