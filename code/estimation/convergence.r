@@ -63,7 +63,7 @@ message("\n--- Part 1 complete. Convergence data frame created in memory. ---")
 
 
 # ===================================================================
-# Part 2: Create the Hybrid Convergence Visualization
+# Part 2: Create the Convergence Visualization
 # ===================================================================
 
 message("\n--- Starting Part 2: Creating the hybrid visualization ---")
@@ -93,64 +93,55 @@ message("Data prepared for plotting.")
 
 # --- Create the three diagnostic plots ---
 
-# Common theme for all plots
+x_axis_labels <- c(
+  "100" = "10^2",
+  "1000" = "10^3",
+  "10000" = "10^4",
+  "1e+05" = "10^5"
+)
+
+# Common theme without titles/subtitles
 common_theme <- theme_minimal_hgrid(14) +
   theme(
-    legend.position = "bottom",
+    legend.position = "top",  # Keep legend on top
     axis.title.x = element_blank(),
     axis.text.x = element_text(size = 11)
   )
 
-# Custom scientific labels for the x-axis
-x_axis_labels <- c(
-  "100" = expression(10^2),
-  "1000" = expression(10^3),
-  "10000" = expression(10^4),
-  "100000" = expression(10^5)
-)
-
-# A) R-hat Plot (Maximum Value Line Plot)
+# R-hat Plot (legend on top with parsed labels)
 p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat, color = `Simulation Setup`, group = `Simulation Setup`)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
-  scale_x_discrete(labels = x_axis_labels) +
+  scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +  # map factor levels to parsed labels
   scale_y_continuous(name = expression(Maximum~hat(R))) +
   scale_color_viridis_d(
     option = "B",
     end = 0.8,
     labels = parse(text = levels(factor(plot_data_agg$`Simulation Setup`)))
   ) +
-  labs(
-    title = "Convergence Diagnostics by Sample Size",
-    subtitle = "Worst-case R-hat across all parameters"
-  ) +
-  common_theme
+  common_theme +
+  theme(legend.position = "top")
 
-# B) Bulk ESS Distribution Plot (Boxplots, Linear Scale)
+
+# Bulk ESS Distribution Plot (no title/subtitle)
 p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = Bulk_ESS, fill = `Simulation Setup`)) +
   geom_boxplot(alpha = 0.8) +
-  scale_x_discrete(labels = x_axis_labels) +
-  scale_y_continuous(name = "Distribution of Bulk ESS (Linear Scale)") +
+  scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
+  scale_y_continuous(name = "Distribution of Bulk ESS") +
   scale_fill_viridis_d(option = "B", end = 0.8, guide = "none") +
-  labs(subtitle = "Effective Sample Size for all parameters") +
-  common_theme
+  common_theme +
+  theme(legend.position = "none")
 
-# C) Divergent Transitions Plot (Line/Point)
+# Divergent Transitions Plot (no title/subtitle)
 p_div <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = total_divergences, color = `Simulation Setup`, group = `Simulation Setup`)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
-  scale_x_discrete(
-    name = "Sample Size (Edges)",
-    labels = x_axis_labels
-  ) +
-  scale_y_continuous(
-    name = "Divergent Transitions",
-    limits = c(0, NA)
-  ) +
-  scale_color_viridis_d(option = "B", end = 0.8, guide = "none") +
-  labs(subtitle = "Count of divergent transitions post-warmup") +
+  scale_x_discrete(name = "Sample Size (Edges)", labels = function(x) parse(text = x_axis_labels[x])) +
+  scale_y_continuous(name = "Divergent Transitions", limits = c(0, NA)) +
+  scale_color_viridis_d(option = "B", end = 0.8) +
   common_theme +
-  theme(axis.title.x = element_text(size = 14))
+  theme(axis.title.x = element_text(size = 14),
+  legend.position = "none")
 
 # --- Combine and save the final visualization ---
 
