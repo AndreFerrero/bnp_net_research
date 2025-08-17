@@ -133,6 +133,6 @@ for (lbl in sigma_labels) {
   p <- plot_posteriors(df_sub, lbl)
   
   out_file <- here("code", "estimation", sprintf("subnet_posterior_plot_sigma_%s.pdf", lbl))
-  ggsave(out_file, p, width = 10, height = 6, bg = "white")
+  ggsave(out_file, p, width = 5, height = 4, bg = "white")
   message("Saved: ", out_file)
 }
