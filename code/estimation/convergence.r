@@ -124,11 +124,11 @@ p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat, color = `S
   guides(color = guide_legend(override.aes = list(linetype = 0)))
 
 
-# Bulk ESS Distribution Plot (no title/subtitle)
-p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = Bulk_ESS, fill = `Simulation Setup`)) +
+# ESS Distribution Plot (no title/subtitle)
+p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff, fill = `Simulation Setup`)) +
   geom_boxplot(alpha = 0.8) +
   scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
-  scale_y_continuous(name = "Distribution of Bulk ESS") +
+  scale_y_continuous(name = "Distribution of ESS") +
   scale_fill_viridis_d(option = "B", end = 0.8, guide = "none") +
   common_theme +
   theme(legend.position = "none")
@@ -141,7 +141,7 @@ p_div <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = total_divergences, co
   scale_y_continuous(name = "Divergent Transitions", limits = c(0, NA)) +
   scale_color_viridis_d(option = "B", end = 0.8) +
   common_theme +
-  theme(axis.title.x = element_text(size = 14),
+  theme(axis.title = element_text(size = 14),
   legend.position = "none")
 
 # --- Combine and save the final visualization ---
