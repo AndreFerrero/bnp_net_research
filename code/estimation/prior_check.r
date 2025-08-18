@@ -19,7 +19,7 @@ sample_prior_sigma_unif <- function() {
 
 n_prior_sims <- 500
 
-# --- Beta(2,3) prior ---
+# --- Beta(1.5,3) prior ---
 prior_samples_beta <- replicate(n_prior_sims, {
   alpha <- sample_prior_alpha()
   sigma <- sample_prior_sigma_beta()
@@ -52,7 +52,12 @@ prior_df <- tibble(
 ggplot(prior_df, aes(x = density, fill = sigma_prior)) +
   geom_density(alpha = 0.5) +
   labs(
-    title = "Prior Predictive Distribution of Density",
-    x = "Density (d)", y = "Density (pdf)"
+    x = "Density statistics", 
+    y = "Prior Predictive Density",
+    fill = "Prior on discount parameter"  # sets the legend title
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    legend.position = "top"  # moves the legend to the top
+  )
+
