@@ -71,10 +71,10 @@ plot_posteriors <- function(df, sigma_lbl) {
   for (param_name in params_to_plot_local) {
     # Filter data for the current parameter
     df_param <- df %>% filter(parameter == param_name)
-    
+
     # Get the unique true value for this parameter
     true_val <- unique(df_param$true_value)
-    
+
     # --- AXIS MODIFICATION START ---
     # 1. Calculate breaks that are guaranteed to include the true value
     breaks <- sort(unique(c(scales::pretty_breaks(n = 3)(df_param$value), true_val)))
@@ -85,53 +85,54 @@ plot_posteriors <- function(df, sigma_lbl) {
 
     # Create the plot title to mimic the original facet label
     parameter_label <- parse(text = case_when(
-        param_name == "alpha_A" ~ "alpha[A]",
-        param_name == "alpha_B" ~ "alpha[B]",
-        param_name == "sigma_A" ~ "sigma[A]",
-        param_name == "sigma_B" ~ "sigma[B]",
-        TRUE ~ param_name
+      param_name == "alpha_A" ~ "alpha[A]",
+      param_name == "alpha_B" ~ "alpha[B]",
+      param_name == "sigma_A" ~ "sigma[A]",
+      param_name == "sigma_B" ~ "sigma[B]",
+      TRUE ~ param_name
     ))
 
     p_single <- ggplot(df_param, aes(x = value, colour = factor(n_edges))) +
-        geom_density(size = 0.5, key_glyph = "path") +
-        geom_vline(xintercept = true_val, linetype = "dashed", colour = "red") +
-        scale_x_continuous(
-            breaks = breaks,
-            labels = label_formatter
-        ) +
-        scale_color_viridis_d(
-            option = "B",
-            end = 0.9,
-            direction = -1,
-            name = "Sample size (edges)",
-            labels = function(x) parse(text = paste0("10^", log10(as.numeric(x))))
-        ) +
-        theme_minimal(base_size = 14) +
-        theme(
-            axis.text.y = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "none", # Remove legend from individual plots
-            plot.title = element_text(hjust = 0.5) # <<< THIS LINE CENTERS THE TITLE
-        ) +
-        labs(x = NULL, y = NULL, title = parameter_label)
-    
+      geom_density(size = 0.5, key_glyph = "path") +
+      geom_vline(xintercept = true_val, linetype = "dashed", colour = "red") +
+      scale_x_continuous(
+        breaks = breaks,
+        labels = label_formatter
+      ) +
+      scale_color_viridis_d(
+        option = "B",
+        end = 0.9,
+        direction = -1,
+        name = "Sample size (edges)",
+        labels = function(x) parse(text = paste0("10^", log10(as.numeric(x))))
+      ) +
+      theme_minimal(base_size = 14) +
+      theme(
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "none",
+        plot.title = element_blank() # remove title
+      ) +
+      labs(x = parameter_label, y = NULL)
+
+
     plot_list[[param_name]] <- p_single
   }
-  
+
   # Arrange the plots into a 2x2 grid.
   p_grid <- plot_grid(plotlist = plot_list, ncol = 2)
-  
+
   return(p_grid)
 }
 
 # –– 5) Save one plot per sigma (with minor simplification)
 for (lbl in sigma_labels) {
   df_sub <- posterior_df %>% filter(sigma_label == lbl)
-  
+
   # The new function returns a combined plot with no legend,
   # matching the desired output of the original script.
   p <- plot_posteriors(df_sub, lbl)
-  
+
   out_file <- here("code", "estimation", sprintf("subnet_posterior_plot_sigma_%s.pdf", lbl))
   ggsave(out_file, p, width = 5, height = 4, bg = "white")
   message("Saved: ", out_file)
