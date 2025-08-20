@@ -21,7 +21,7 @@ layout <- layout_with_fr(g1)
 rownames(layout) <- V(g1)$name
 
 # Compute edge label positions
-compute_edge_label_positions <- function(graph, layout, d = 0.15) {
+compute_edge_label_positions <- function(graph, layout, d = 0.2) {
   ELx <- numeric(ecount(graph))
   ELy <- numeric(ecount(graph))
 
