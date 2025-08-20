@@ -12,8 +12,9 @@ g1 <- graph_from_data_frame(edges, directed = FALSE)
 
 # Define edge colors and permutation
 edge_colors <- c("red", "blue", "green")
-edge_labels <- c("1", "2", "3")
-edge_labels_perm <- c("3", "2", "1")
+edge_labels <- expression(Y[1], Y[2], Y[3])
+edge_labels_perm <- expression(Y[3], Y[2], Y[1])
+
 
 # Use same layout for both graphs
 layout <- layout_with_fr(g1)
