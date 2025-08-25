@@ -272,4 +272,7 @@ plot_sigma_B <- make_posterior_plot("sigma_B", expression(sigma[B]))
 
 # --- Combine into single figure ---
 estimates_plot <- (plot_alpha_A | plot_alpha_B) / (plot_sigma_A | plot_sigma_B)
-ggsave(here(plots_dir, "posterior_estimates.pdf"), estimates_plot, width = 10, height = 6)
+ggsave(here(plots_dir, "posterior_estimates.pdf"), estimates_plot, width = 7, height = 4)
+
+
+
