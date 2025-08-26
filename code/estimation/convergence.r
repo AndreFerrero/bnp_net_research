@@ -182,7 +182,7 @@ p_ess_ratio <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
   common_theme +
   theme(
     axis.title.y.left = element_text(size = 12),
-    axis.title.y.right = element_text(size = 12),
+    axis.title.y.right = element_text(size = 12, margin = margin(l = 15)),
     legend.position = "none"
   )
 
