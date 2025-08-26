@@ -122,8 +122,7 @@ p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat,
   scale_y_continuous(name = expression(Maximum ~ hat(R))) +
   scale_color_manual(values = custom_colors) +
   common_theme +
-  theme(legend.position = "none",
-    axis.title.y = element_blank())  # removes legend
+  theme(legend.position = "none")
 
 # ESS distribution plot without legend
 p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
@@ -154,6 +153,40 @@ p_div <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = total_divergences,
     legend.position = "none"
   )
 
+# --- Compute ESS ratio relative to total posterior draws ---
+# Compute total draws
+# Compute total draws
+total_draws <- (fit@sim$iter - fit@sim$warmup) * fit@sim$chains
+
+# Define the ESS values you want ticks for
+left_ticks <- c(6000, 8000, 10000, 12000)
+
+# Calculate corresponding ratios
+right_ticks <- left_ticks / total_draws
+
+# Create plot with secondary axis
+p_ess_ratio <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
+                                                fill = `Simulation Setup`)) +
+  geom_boxplot(alpha = 0.8, outlier.size = 0.8) +
+  scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
+  scale_y_continuous(
+    name = "ESS",
+    limits = c(6000, NA),
+    breaks = left_ticks,                           # left axis ticks
+    sec.axis = sec_axis(~ . / total_draws,         # map left to right
+                        name = "ESS / Total Draws",
+                        breaks = right_ticks,     # right axis ticks
+                        labels = scales::percent(right_ticks)) # format as %
+  ) +
+  scale_fill_manual(values = custom_colors, guide = "none") +
+  common_theme +
+  theme(
+    axis.title.y.left = element_text(size = 12),
+    axis.title.y.right = element_text(size = 12),
+    legend.position = "none"
+  )
+
+
 # --- Combine and save the final visualization ---
 library(patchwork)
 
@@ -176,14 +209,16 @@ message(sprintf("\n--- Part 2 complete. Hybrid visualization saved to: ---\n%s",
 
 # Save Max R-hat plot
 ggsave(
-  filename = here("code", "estimation", "max_rhat_plot.pdf"),
+  filename = here(output_dir, "max_rhat_plot.pdf"),
   plot = p_rhat,
   width = 6, height = 4
 )
 
 # Save ESS plot
 ggsave(
-  filename = here("code", "estimation", "ess_plot.pdf"),
+  filename = here(output_dir, "ess_plot.pdf"),
   plot = p_ess,
   width = 6, height = 4
 )
+
+ggsave(file.path(output_dir, "ess_ratio_plot.pdf"), plot = p_ess_ratio, width = 6, height = 4)
