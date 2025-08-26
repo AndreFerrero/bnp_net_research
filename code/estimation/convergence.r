@@ -3,7 +3,7 @@ library(rstan)
 library(tidyverse)
 library(here)
 library(cowplot) # For arranging plots
-library(ggdist)  # For a nice ggplot theme
+library(ggdist) # For a nice ggplot theme
 
 # ===================================================================
 # Part 1: Generate Convergence Summary from .Rdata files
@@ -24,23 +24,23 @@ for (sigma_label in sigma_labels) {
     # Define file path
     fname <- sprintf("fit_subnet_n_%g_sigma_%s.Rdata", n, sigma_label)
     fpath <- here("code", "estimation", fname)
-    
+
     if (!file.exists(fpath)) {
       warning(sprintf("File not found, skipping: %s", fname))
       next
     }
-    
+
     # Load the 'fit' object from the .Rdata file
     load(fpath)
-    
+
     # Extract numerical diagnostics using rstan::monitor
     monitor_df <- as.data.frame(rstan::monitor(fit, print = FALSE)) %>%
       rownames_to_column("parameter")
-      
+
     # Count divergent transitions post-warmup
     sampler_params <- get_sampler_params(fit, inc_warmup = FALSE)
     divergences <- sum(sapply(sampler_params, function(x) sum(x[, "divergent__"])))
-    
+
     # Add metadata to the summary
     monitor_df <- monitor_df %>%
       mutate(
@@ -48,10 +48,10 @@ for (sigma_label in sigma_labels) {
         sigma_label = sigma_label,
         divergent_transitions = divergences
       )
-    
+
     # Store the summary for this model fit in the list
     convergence_summary_list[[length(convergence_summary_list) + 1]] <- monitor_df
-    
+
     message(sprintf("Processed: %s", fname))
   }
 }
@@ -72,6 +72,7 @@ message("\n--- Starting Part 2: Creating the hybrid visualization ---")
 
 # Add descriptive columns and a factor for the x-axis to the full dataset
 plot_data_full <- convergence_df %>%
+  filter(parameter %in% c("alpha_A", "alpha_B", "sigma_A", "sigma_B")) %>%
   mutate(
     `Simulation Setup` = case_when(
       sigma_label == "0_02" ~ "sigma[B] == 0.2",
@@ -91,6 +92,10 @@ plot_data_agg <- plot_data_full %>%
 
 message("Data prepared for plotting.")
 
+# --- Define custom colors (lighter viridis pair) ---
+custom_colors <- c("sigma[B] == 0.2" = "#4D4B4B",
+                   "sigma[B] == 0.7" = "#EEAC1D")
+
 # --- Create the three diagnostic plots ---
 
 x_axis_labels <- c(
@@ -103,58 +108,59 @@ x_axis_labels <- c(
 # Common theme without titles/subtitles
 common_theme <- theme_minimal_hgrid(14) +
   theme(
-    legend.position = "top",  # Keep legend on top
+    legend.position = "top",
     axis.title.x = element_blank(),
     axis.text.x = element_text(size = 11)
   )
 
-# R-hat Plot (legend on top with parsed labels)
-p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat, color = `Simulation Setup`, group = `Simulation Setup`)) +
+# Max R-hat plot without legend
+p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat,
+                                    color = `Simulation Setup`, group = `Simulation Setup`)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
-  scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +  # map factor levels to parsed labels
-  scale_y_continuous(name = expression(Maximum~hat(R))) +
-  scale_color_viridis_d(
-    option = "B",
-    end = 0.8,
-    labels = parse(text = levels(factor(plot_data_agg$`Simulation Setup`)))
-  ) +
-  common_theme +
-  theme(legend.position = "top") +
-  guides(color = guide_legend(override.aes = list(linetype = 0)))
-
-
-# ESS Distribution Plot (no title/subtitle)
-p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff, fill = `Simulation Setup`)) +
-  geom_boxplot(alpha = 0.8) +
   scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
-  scale_y_continuous(name = "Distribution of ESS") +
-  scale_fill_viridis_d(option = "B", end = 0.8, guide = "none") +
+  scale_y_continuous(name = expression(Maximum ~ hat(R))) +
+  scale_color_manual(values = custom_colors) +
   common_theme +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+    axis.title.y = element_blank())  # removes legend
 
-# Divergent Transitions Plot (no title/subtitle)
-p_div <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = total_divergences, color = `Simulation Setup`, group = `Simulation Setup`)) +
+# ESS distribution plot without legend
+p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
+                                    fill = `Simulation Setup`)) +
+  geom_boxplot(alpha = 0.8, outlier.size = 0.8) +
+  scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
+  scale_y_continuous(name = "Distribution of ESS", limits = c(6000, NA)) +
+  scale_fill_manual(values = custom_colors, guide = "none") + # ensures no legend
+  common_theme +
+  coord_cartesian(ylim = c(6000, NA), clip = "off") +
+  theme(
+    axis.title.y = element_blank(),
+    legend.position = "none"  # removes legend
+  )
+
+# Divergent Transitions Plot
+p_div <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = total_divergences,
+                                   color = `Simulation Setup`, group = `Simulation Setup`)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
-  scale_x_discrete(name = "Sample Size (Edges)", labels = function(x) parse(text = x_axis_labels[x])) +
+  scale_x_discrete(name = "Sample Size (Edges)",
+                   labels = function(x) parse(text = x_axis_labels[x])) +
   scale_y_continuous(name = "Divergent Transitions", limits = c(0, NA)) +
-  scale_color_viridis_d(option = "B", end = 0.8) +
+  scale_color_manual(values = custom_colors) +
   common_theme +
-  theme(axis.title = element_text(size = 14),
-  legend.position = "none")
+  theme(
+    axis.title = element_text(size = 14),
+    legend.position = "none"
+  )
 
 # --- Combine and save the final visualization ---
+library(patchwork)
 
-# Arrange the three plots vertically
-final_plot <- plot_grid(
-  p_rhat,
-  p_ess,
-  p_div,
-  ncol = 1,
-  align = 'v',
-  rel_heights = c(1.15, 1, 1)
-)
+# Combine the plots horizontally
+final_plot <- p_rhat + p_ess +
+  plot_layout(ncol = 2, guides = "collect") &   # collect all legends into one
+  theme(legend.position = "top")
 
 # Define output path
 output_dir <- here("code", "estimation")
@@ -164,6 +170,20 @@ if (!dir.exists(output_dir)) {
 output_path <- file.path(output_dir, "convergence_visualization.pdf")
 
 # Save the plot
-ggsave(output_path, final_plot, width = 9, height = 11, bg = "white")
+ggsave(output_path, final_plot, width = 11, height = 5, bg = "white")
 
 message(sprintf("\n--- Part 2 complete. Hybrid visualization saved to: ---\n%s", output_path))
+
+# Save Max R-hat plot
+ggsave(
+  filename = here("code", "estimation", "max_rhat_plot.pdf"),
+  plot = p_rhat,
+  width = 6, height = 4
+)
+
+# Save ESS plot
+ggsave(
+  filename = here("code", "estimation", "ess_plot.pdf"),
+  plot = p_ess,
+  width = 6, height = 4
+)
