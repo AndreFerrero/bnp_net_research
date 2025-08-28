@@ -219,10 +219,14 @@ make_posterior_plot <- function(param_name, parsed_label) {
   xmin <- max(0, ci_low - 0.3 * ci_width)
   xmax <- ci_high + 0.3 * ci_width
 
+  post_median <- median(df$value)
+
   dens <- density(df$value)
   dens_df <- tibble(x = dens$x, y = dens$y) %>%
     filter(x >= xmin & x <= xmax) %>%
     mutate(in_ci = x >= ci_low & x <= ci_high)
+
+  ymax <- max(dens_df$y)
 
   ci_label_x <- (ci_low + ci_high) / 2
 
@@ -239,18 +243,25 @@ make_posterior_plot <- function(param_name, parsed_label) {
       color = highlight_color,
       linewidth = 0.8
     ) +
+    geom_vline(
+      xintercept = round(post_median, 2),
+      linetype = "solid",
+      color = "darkgray",
+      linewidth = 0.4
+    ) +
     annotate(
       "text",
       x = ci_label_x,
       y = 0,
       label = "95% CI",
-      vjust = 2,
-      size = 3.5,
+      vjust = 2.3,
+      hjust = -0.5,
+      size = 3.4,
       color = highlight_color
     ) +
     coord_cartesian(clip = "off") +
     scale_x_continuous(
-      breaks = c(round(ci_low, 3), round(ci_high, 3)),
+      breaks = c(round(ci_low, 3), round(post_median, 2), round(ci_high, 3)),
       limits = c(xmin, xmax),
       labels = scales::label_number(accuracy = 0.01)
     ) +
@@ -273,5 +284,4 @@ plot_sigma_B <- make_posterior_plot("sigma_B", expression(sigma[B]))
 # --- Combine into single figure ---
 estimates_plot <- (plot_alpha_A | plot_alpha_B) / (plot_sigma_A | plot_sigma_B)
 ggsave(here(plots_dir, "posterior_estimates.pdf"), estimates_plot, width = 7, height = 4)
-
 
