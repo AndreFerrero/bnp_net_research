@@ -86,6 +86,7 @@ plot_data_agg <- plot_data_full %>%
   group_by(n_edges_factor, `Simulation Setup`) %>%
   summarise(
     max_rhat = max(Rhat, na.rm = TRUE),
+    min_ess = min(n_eff, na.rm = TRUE),
     total_divergences = first(divergent_transitions),
     .groups = "drop"
   )
@@ -165,12 +166,13 @@ left_ticks <- c(6000, 8000, 10000, 12000)
 right_ticks <- left_ticks / total_draws
 
 # Create plot with secondary axis
-p_ess_ratio <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
-                                                fill = `Simulation Setup`)) +
-  geom_boxplot(alpha = 0.8, outlier.size = 0.8) +
+p_ess_ratio <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = min_ess,
+                                    color = `Simulation Setup`, group = `Simulation Setup`)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3.5) +
   scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
   scale_y_continuous(
-    name = "ESS",
+    name = "min ESS",
     limits = c(6000, NA),
     breaks = left_ticks,                           # left axis ticks
     sec.axis = sec_axis(~ . / total_draws,         # map left to right
@@ -178,13 +180,13 @@ p_ess_ratio <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
                         breaks = right_ticks,     # right axis ticks
                         labels = scales::percent(right_ticks)) # format as %
   ) +
-  scale_fill_manual(values = custom_colors, guide = "none") +
+  scale_color_manual(values = custom_colors) +
   common_theme +
-  theme(
+  theme(legend.position = "none",
     axis.title.y.left = element_text(size = 12),
-    axis.title.y.right = element_text(size = 12, margin = margin(l = 15)),
-    legend.position = "none"
-  )
+    axis.title.y.right = element_text(size = 12, margin = margin(l = 15)))
+
+
 
 
 # --- Combine and save the final visualization ---
