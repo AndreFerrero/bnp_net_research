@@ -94,8 +94,10 @@ plot_data_agg <- plot_data_full %>%
 message("Data prepared for plotting.")
 
 # --- Define custom colors (lighter viridis pair) ---
-custom_colors <- c("sigma[B] == 0.2" = "#4D4B4B",
-                   "sigma[B] == 0.7" = "#EEAC1D")
+custom_colors <- c(
+  "sigma[B] == 0.2" = "#4D4B4B",
+  "sigma[B] == 0.7" = "#EEAC1D"
+)
 
 # --- Create the three diagnostic plots ---
 
@@ -115,8 +117,10 @@ common_theme <- theme_minimal_hgrid(14) +
   )
 
 # Max R-hat plot without legend
-p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat,
-                                    color = `Simulation Setup`, group = `Simulation Setup`)) +
+p_rhat <- ggplot(plot_data_agg, aes(
+  x = n_edges_factor, y = max_rhat,
+  color = `Simulation Setup`, group = `Simulation Setup`
+)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
   scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
@@ -126,8 +130,10 @@ p_rhat <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = max_rhat,
   theme(legend.position = "none")
 
 # ESS distribution plot without legend
-p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
-                                    fill = `Simulation Setup`)) +
+p_ess <- ggplot(plot_data_full, aes(
+  x = n_edges_factor, y = n_eff,
+  fill = `Simulation Setup`
+)) +
   geom_boxplot(alpha = 0.8, outlier.size = 0.8) +
   scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
   scale_y_continuous(name = "Distribution of ESS", limits = c(6000, NA)) +
@@ -136,16 +142,20 @@ p_ess <- ggplot(plot_data_full, aes(x = n_edges_factor, y = n_eff,
   coord_cartesian(ylim = c(6000, NA), clip = "off") +
   theme(
     axis.title.y = element_blank(),
-    legend.position = "none"  # removes legend
+    legend.position = "none" # removes legend
   )
 
 # Divergent Transitions Plot
-p_div <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = total_divergences,
-                                   color = `Simulation Setup`, group = `Simulation Setup`)) +
+p_div <- ggplot(plot_data_agg, aes(
+  x = n_edges_factor, y = total_divergences,
+  color = `Simulation Setup`, group = `Simulation Setup`
+)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
-  scale_x_discrete(name = "Sample Size (Edges)",
-                   labels = function(x) parse(text = x_axis_labels[x])) +
+  scale_x_discrete(
+    name = "Sample Size (Edges)",
+    labels = function(x) parse(text = x_axis_labels[x])
+  ) +
   scale_y_continuous(name = "Divergent Transitions", limits = c(0, NA)) +
   scale_color_manual(values = custom_colors) +
   common_theme +
@@ -166,25 +176,30 @@ left_ticks <- c(6000, 8000, 10000, 12000)
 right_ticks <- left_ticks / total_draws
 
 # Create plot with secondary axis
-p_ess_ratio <- ggplot(plot_data_agg, aes(x = n_edges_factor, y = min_ess,
-                                    color = `Simulation Setup`, group = `Simulation Setup`)) +
+p_ess_ratio <- ggplot(plot_data_agg, aes(
+  x = n_edges_factor, y = min_ess,
+  color = `Simulation Setup`, group = `Simulation Setup`
+)) +
   geom_line(linewidth = 0.8) +
   geom_point(size = 3.5) +
   scale_x_discrete(labels = function(x) parse(text = x_axis_labels[x])) +
   scale_y_continuous(
-    name = "min ESS",
+    name = "Minimum ESS",
     limits = c(6000, NA),
-    breaks = left_ticks,                           # left axis ticks
-    sec.axis = sec_axis(~ . / total_draws,         # map left to right
-                        name = "ESS / Total Draws",
-                        breaks = right_ticks,     # right axis ticks
-                        labels = scales::percent(right_ticks)) # format as %
+    breaks = left_ticks, # left axis ticks
+    sec.axis = sec_axis(~ . / total_draws, # map left to right
+      name = "ESS / Total Draws",
+      breaks = right_ticks, # right axis ticks
+      labels = scales::percent(right_ticks)
+    ) # format as %
   ) +
   scale_color_manual(values = custom_colors) +
   common_theme +
-  theme(legend.position = "none",
+  theme(
+    legend.position = "none",
     axis.title.y.left = element_text(size = 12),
-    axis.title.y.right = element_text(size = 12, margin = margin(l = 15)))
+    axis.title.y.right = element_text(size = 12, margin = margin(l = 15))
+  )
 
 
 
@@ -194,7 +209,7 @@ library(patchwork)
 
 # Combine the plots horizontally
 final_plot <- p_rhat + p_ess +
-  plot_layout(ncol = 2, guides = "collect") &   # collect all legends into one
+  plot_layout(ncol = 2, guides = "collect") & # collect all legends into one
   theme(legend.position = "top")
 
 # Define output path
