@@ -46,6 +46,22 @@ plot(
 
 dev.off()
 
+pdf("examples/uni_net_example_dark.pdf", width = 5, height = 5)
+par(mar = c(0.5, 0.5, 2, 0.5))
+
+# Plot 1: Unipartite with B–C edge
+plot(
+  g1,
+  layout = layout_v1,
+  vertex.size = 50,
+  vertex.label.cex = 1.5,
+  vertex.color = "lightblue",
+  vertex.frame.color = "black",
+  edge.color = "black"
+)
+
+dev.off()
+
 pdf("examples/uni_net_example2_dark.pdf", width = 5, height = 5)
 par(mar = c(0.5, 0.5, 2, 0.5))
 
@@ -79,6 +95,28 @@ plot(
   vertex.label = label_expr,
   vertex.label.cex = 1.5,
   vertex.frame.color = "black"
+)
+
+dev.off()
+
+pdf("examples/bip_net_example_dark.pdf", width = 5, height = 5)
+par(mar = c(0.5, 0.5, 2, 0.5))
+
+# Plot 2: Bipartite with B[1], B[2] and shapes
+V(g2)$shape <- ifelse(V(g2)$name == "A", "circle", "square")
+V(g2)$color <- ifelse(V(g2)$name == "A", "orange", "orange")
+
+label_expr <- expression("A", B[1], B[2])
+label_expr <- label_expr[match(V(g2)$name, c("A", "B_1", "B_2"))]
+
+plot(
+  g2,
+  layout = layout_v2,
+  vertex.size = 50,
+  vertex.label = label_expr,
+  vertex.label.cex = 1.5,
+  vertex.frame.color = "black",
+  edge.color = "black"
 )
 
 dev.off()
