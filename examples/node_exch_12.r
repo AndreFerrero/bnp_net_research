@@ -28,7 +28,7 @@ assign_node_colors <- function(names) {
     } else if (n == "C") {
       "orange"
     } else {
-      "gray90"
+      "darkgrey"
     }
   })
 }
@@ -50,7 +50,7 @@ plot(g1,
   vertex.label.color = "black",
   vertex.color = colors_g1,
   vertex.size = 30,
-  edge.color = "darkgray"
+  edge.color = "black"
 )
 dev.off()
 
@@ -63,6 +63,6 @@ plot(g2,
   vertex.label.color = "black",
   vertex.color = colors_g2,
   vertex.size = 30,
-  edge.color = "darkgray"
+  edge.color = "black"
 )
 dev.off()
