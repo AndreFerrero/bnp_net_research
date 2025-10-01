@@ -50,7 +50,7 @@ plot(g1,
   vertex.label.color = "black",
   vertex.color = colors_g1,
   vertex.size = 30,
-  edge.color = "gray50"
+  edge.color = "darkgray"
 )
 dev.off()
 
@@ -63,6 +63,6 @@ plot(g2,
   vertex.label.color = "black",
   vertex.color = colors_g2,
   vertex.size = 30,
-  edge.color = "gray50"
+  edge.color = "darkgray"
 )
 dev.off()
