@@ -46,6 +46,22 @@ plot(
 
 dev.off()
 
+pdf("examples/uni_net_example2_dark.pdf", width = 5, height = 5)
+par(mar = c(0.5, 0.5, 2, 0.5))
+
+# Plot 1: Unipartite with B–C edge
+plot(
+  g11,
+  layout = layout_v11,
+  vertex.size = 50,
+  vertex.label.cex = 1.5,
+  vertex.color = "lightblue",
+  vertex.frame.color = "black",
+  edge.color = "black"
+)
+
+dev.off()
+
 pdf("examples/bip_net_example.pdf", width = 5, height = 5)
 par(mar = c(0.5, 0.5, 2, 0.5))
 
@@ -80,7 +96,7 @@ plot(
 )
 dev.off()
 
-pdf("examples/uni_net_example2.pdf", width = 5, height = 5)
+pdf("examples/uni_net_example2_dark.pdf", width = 5, height = 5)
 
 par(mar = c(0.5, 0.5, 2, 0.5))
 
@@ -90,11 +106,12 @@ plot(
   vertex.size = 50,
   vertex.label.cex = 1.5,
   vertex.color = "lightblue",
-  vertex.frame.color = "black"
+  vertex.frame.color = "black",
+  edge.color = "darkgray"
 )
 dev.off()
 
-pdf("examples/bin_net_example2.pdf", width = 5, height = 5)
+pdf("examples/bin_net_example2_dark.pdf", width = 5, height = 5)
 par(mar = c(0.5, 0.5, 2, 0.5))
 
 plot(
@@ -103,7 +120,8 @@ plot(
   vertex.size = 50,
   vertex.label.cex = 1.5,
   vertex.color = "lightblue",
-  vertex.frame.color = "black"
+  vertex.frame.color = "black",
+  edge.color = "black"
 )
 
 dev.off()
