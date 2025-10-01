@@ -42,7 +42,7 @@ if (!dir.exists("examples")) {
 }
 
 # Plot original graph (g1)
-pdf("examples/node_exch_g1.pdf", width = 4, height = 2.5)
+pdf("examples/node_exch_g1_dark.pdf", width = 4, height = 2.5)
 par(mar = c(0, 0, 0, 0))
 plot(g1,
   layout = layout,
@@ -55,7 +55,7 @@ plot(g1,
 dev.off()
 
 # Plot permuted graph (g2)
-pdf("examples/node_exch_g2.pdf", width = 4, height = 2.5)
+pdf("examples/node_exch_g2_dark.pdf", width = 4, height = 2.5)
 par(mar = c(0, 0, 0, 0))
 plot(g2,
   layout = layout,

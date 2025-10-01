@@ -77,13 +77,13 @@ lims_g1 <- expand_limits(layout, pos_g1$x, pos_g1$y)
 small_margins <- c(0.5, 0, 0.5, 0)
 
 # Plot original edge-labeled graph
-pdf("examples/edge_exch_g1.pdf", width = 4, height = 2.5)
+pdf("examples/edge_exch_g1_dark.pdf", width = 4, height = 2.5)
 par(mar = small_margins)
 plot(g1,
   layout = layout,
   vertex.label = V(g1)$name,
   vertex.label.color = "black",
-  vertex.color = "gray90",
+  vertex.color = "darkgrey",
   vertex.size = 30,
   edge.label = edge_labels,
   edge.label.cex = 1.2,
@@ -99,13 +99,13 @@ plot(g1,
 dev.off()
 
 # Plot permuted edge-labeled graph
-pdf("examples/edge_exch_g2.pdf", width = 4, height = 2.5)
+pdf("examples/edge_exch_g2_dark.pdf", width = 4, height = 2.5)
 par(mar = small_margins)
 plot(g1,
   layout = layout,
   vertex.label = V(g1)$name,
   vertex.label.color = "black",
-  vertex.color = "gray90",
+  vertex.color = "darkgrey",
   vertex.size = 30,
   edge.label = edge_labels_perm,
   edge.label.cex = 1.2,

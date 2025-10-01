@@ -35,9 +35,9 @@ plot(g1,
   layout = layout,
   vertex.label = V(g1)$name,
   vertex.label.color = "black",
-  vertex.color = "gray90",
+  vertex.color = "darkgrey",
   vertex.size = 30,
-  edge.color = "gray50",
+  edge.color = "black",
   main = "(a)"
 )
 
@@ -46,9 +46,9 @@ plot(g2,
   layout = layout,
   vertex.label = V(g2)$name,
   vertex.label.color = label_colors_g2,
-  vertex.color = "gray90",
+  vertex.color = "darkgrey",
   vertex.size = 30,
-  edge.color = "gray50",
+  edge.color = "black",
   main = "(b)"
 )
 
