@@ -1,24 +1,25 @@
 # Load igraph
+set.seed(26)
 library(igraph)
 
 # Set seed for reproducibility
 # --- Create Sparse Graph ---
 # 10 nodes, 10 edges (low density)
-sparse_g <- erdos.renyi.game(n = 10, p.or.m = 10, type = "gnm", directed = FALSE)
+sparse_g <- erdos.renyi.game(n = 9, p.or.m = 10, type = "gnm", directed = FALSE)
 
 # --- Create Dense Graph ---
 # 10 nodes, 35 edges (high density, close to complete)
-dense_g <- erdos.renyi.game(n = 10, p.or.m = 35, type = "gnm", directed = FALSE)
+dense_g <- erdos.renyi.game(n = 9, p.or.m = 35, type = "gnm", directed = FALSE)
 
 # --- Common Layout (same for both) ---
 layout <- layout_with_fr(sparse_g) # Same layout for fair comparison
 
 # --- Plot Sparse Graph ---
-pdf("sparse_graph.pdf", width = 5, height = 5)
+pdf("examples/sparse_graph_black.pdf", width = 5, height = 5)
 par(mar = c(0, 0, 0, 0))
 plot(sparse_g,
   layout = layout,
-  vertex.color = "gray90",
+  vertex.color = "darkgray",
   vertex.label = NA,
   vertex.size = 20,
   edge.color = "black",
@@ -27,11 +28,11 @@ plot(sparse_g,
 dev.off()
 
 # --- Plot Dense Graph ---
-pdf("dense_graph.pdf", width = 5, height = 5)
+pdf("examples/dense_graph_black.pdf", width = 5, height = 5)
 par(mar = c(0, 0, 0, 0))
 plot(dense_g,
   layout = layout,
-  vertex.color = "gray90",
+  vertex.color = "darkgray",
   vertex.label = NA,
   vertex.size = 20,
   edge.color = "black",
